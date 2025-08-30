@@ -165,4 +165,14 @@ export const general_styles = StyleSheet.create({
     marginRight: 10,
     marginTop: 10,
   },
+
+   closeBtn: {
+    marginTop: 20,
+    backgroundColor: Colors.falsch,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    width:'85%',
+    alignItems:'center'
+  },
 });

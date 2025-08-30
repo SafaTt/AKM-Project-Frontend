@@ -1,3 +1,5 @@
+import LimitMistakesModal from "@/components/LimitMistakesModal";
+import TimeoutModal from "@/components/TimeoutModal";
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,6 +58,7 @@ type StoredExam = {
   })[];
   startedAt: number; // timestamp
   secondsLeft: number;
+  statusExam: String;
 };
 
 // helper pour choisir N questions aléatoires
@@ -67,7 +70,7 @@ const getRandomSubset = (arr: Question[], n: number) => {
 export default function ExamQuizz() {
   const router = useRouter();
 
-  const totalMinutes = 60;
+  const totalMinutes = 0.1;
   const [secondsLeft, setSecondsLeft] = useState(totalMinutes * 60);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);
@@ -80,9 +83,9 @@ export default function ExamQuizz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [mistakesOverall, setMistakesOverall] = useState(0);
-
-  const [showResult, setShowResult] = useState(false); // 👈 étape 2
-
+  const [timeoutVisible, setTimeoutVisible] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [limitMistakesVisible, setLimitMistakesVisible] = useState(false);
   // Timer
   useEffect(() => {
     if (!isPaused) {
@@ -90,7 +93,8 @@ export default function ExamQuizz() {
         setSecondsLeft((prev) => {
           if (prev <= 1) {
             if (intervalRef.current) clearInterval(intervalRef.current);
-            handleFinishExam();
+            setTimeoutVisible(true);
+            // handleFinishExam();
             return 0;
           }
           return prev - 1;
@@ -128,6 +132,15 @@ export default function ExamQuizz() {
     };
     loadQuestions();
   }, []);
+
+  useEffect(() => {
+    const limitMistakes = () => {
+      if (mistakesOverall === 1) {
+        setLimitMistakesVisible(true);
+      }
+    };
+    limitMistakes();
+  });
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -167,7 +180,7 @@ export default function ExamQuizz() {
     }, 1500);
   };
 
-  const handleFinishExam = () => {
+  const handleFinishExam = async () => {
     let mistakesOverall = 0;
     const mistakesPerTopic: Record<string, number> = {};
 
@@ -184,9 +197,19 @@ export default function ExamQuizz() {
     const passed = !failByTopic && !failOverall;
 
     console.log("result", String(passed), mistakesOverall);
+
+    // Stocker le statut 'fini' dans AsyncStorage
+    await saveExam(currentIndex, answers, "fini");
+
+    // Retour au screen précédent
+    router.back();
   };
 
-  const saveExam = async (index: number, answers: (string | null)[]) => {
+  const saveExam = async (
+    index: number,
+    answers: (string | null)[],
+    statusExam: "encours" | "fini" = "encours"
+  ) => {
     const exam: StoredExam = {
       currentIndex: index,
       secondsLeft,
@@ -198,6 +221,7 @@ export default function ExamQuizz() {
         isCorrect:
           answers[i] == null ? null : answers[i] === q["Richtige Antwort"],
       })),
+      statusExam,
     };
     try {
       await AsyncStorage.setItem("currentExam", JSON.stringify(exam));
@@ -305,6 +329,22 @@ export default function ExamQuizz() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <TimeoutModal
+        visible={timeoutVisible}
+        correctAnswer=""
+        onClose={() => {
+          handleFinishExam();
+          setTimeoutVisible(false);
+        }}
+      />
+      <LimitMistakesModal
+        visible={limitMistakesVisible}
+        onClose={() => {
+          handleFinishExam();
+          setLimitMistakesVisible(false);
+        }}
+      />
     </View>
   );
 }
