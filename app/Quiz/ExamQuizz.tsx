@@ -1,5 +1,5 @@
 import LimitMistakesModal from "@/components/LimitMistakesModal";
-import TimeoutModal from "@/components/TimeoutModal";
+import ResultModal from "@/components/ResultModal";
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,15 +18,6 @@ import {
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
-
-type Question = {
-  Frage: string;
-  "Antwort A": string;
-  "Antwort B": string;
-  "Antwort C": string;
-  "Richtige Antwort": string;
-  Thema: string; // pour savoir de quel CSV ça vient
-};
 
 const csvFiles = [
   {
@@ -50,15 +42,27 @@ const csvFiles = [
   },
 ];
 
-type StoredExam = {
-  currentIndex: number; // index actuel
+type Question = {
+  Frage: string;
+  "Antwort A": string;
+  "Antwort B": string;
+  "Antwort C": string;
+  "Richtige Antwort": string;
+  Thema: string; // pour savoir de quel CSV ça vient
+};
+
+export type StoredExam = {
+  currentIndex: number;
   questions: (Question & {
     userAnswer: string | null;
     isCorrect: boolean | null;
   })[];
-  startedAt: number; // timestamp
-  secondsLeft: number;
-  statusExam: String;
+  startedAt: number; // timestamp du début
+  secondsLeft: number; // compte à rebours restant (utile si exam en cours)
+  elapsedTime?: number;
+  statusExam: "encours" | "fini";
+  passed: boolean | null;
+  wrongQuestions?: Question[];
 };
 
 // helper pour choisir N questions aléatoires
@@ -70,7 +74,7 @@ const getRandomSubset = (arr: Question[], n: number) => {
 export default function ExamQuizz() {
   const router = useRouter();
 
-  const totalMinutes = 0.1;
+  const totalMinutes = 0.2;
   const [secondsLeft, setSecondsLeft] = useState(totalMinutes * 60);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);
@@ -83,28 +87,40 @@ export default function ExamQuizz() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [mistakesOverall, setMistakesOverall] = useState(0);
-  const [timeoutVisible, setTimeoutVisible] = useState(false);
+  // const [timeoutVisible, setTimeoutVisible] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [limitMistakesVisible, setLimitMistakesVisible] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [currentExam, setCurrentExam] = useState<StoredExam | null>(null);
+
   // Timer
   useEffect(() => {
-    if (!isPaused) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((prev) => {
-          if (prev <= 1) {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setTimeoutVisible(true);
-            // handleFinishExam();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    if (isPaused) return;
+
+    intervalRef.current = window.setInterval(() => {
+      setSecondsLeft((prev) => prev - 1);
+    }, 1000);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isPaused]);
+
+  // Stop timer et finir l’exam dès que secondsLeft atteint 0
+  useEffect(() => {
+    if (secondsLeft <= 0 && questions.length) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      handleFinishExam(); // async hors du setter
+    }
+  }, [secondsLeft, questions]);
+
+  // Fin si 15 fautes
+  useEffect(() => {
+    if (mistakesOverall === 15) {
+      handleFinishExam();
+      setLimitMistakesVisible(true);
+    }
+  }, [mistakesOverall]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -133,15 +149,6 @@ export default function ExamQuizz() {
     loadQuestions();
   }, []);
 
-  useEffect(() => {
-    const limitMistakes = () => {
-      if (mistakesOverall === 1) {
-        setLimitMistakesVisible(true);
-      }
-    };
-    limitMistakes();
-  });
-
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
@@ -155,78 +162,123 @@ export default function ExamQuizz() {
 
     const isCorrect = selectedOption === current["Richtige Antwort"];
     setIsAnswerCorrect(isCorrect);
-    setShowResult(true); // 👈 on affiche les couleurs correct/incorrect
+    setShowResult(true);
 
     if (!isCorrect) {
       setMistakesOverall((prev) => prev + 1);
     }
 
-    // sauvegarde réponse
+    // Mettre à jour réponses
     const updated = [...answers];
     updated[currentIndex] = selectedOption;
     setAnswers(updated);
-    saveExam(currentIndex, updated);
 
-    // après 1.5s → prochaine question
-    setTimeout(() => {
+    // 👉 Sauvegarde seulement si ce n’est PAS la dernière question
+    if (currentIndex < questions.length - 1) {
+      saveExam(updated, "encours");
+    }
+
+    // après 1.5s → prochaine question OU fin
+    setTimeout(async () => {
       if (currentIndex < questions.length - 1) {
         setCurrentIndex((i) => i + 1);
-        setSelectedOption(null); // reset choix
+        setSelectedOption(null);
         setIsAnswerCorrect(null);
         setShowResult(false);
       } else {
-        handleFinishExam();
+        await handleFinishExam(); // ✅ ici ce sera bien "fini"
       }
-    }, 1500);
+    }, 1000);
+  };
+
+  const saveExam = async (
+    answers: (string | null)[],
+    statusExam: "encours" | "fini" = "encours"
+  ): Promise<StoredExam | null> => {
+    if (!questions.length) return null;
+
+    const answeredQuestions = questions.map((q, i) => ({
+      ...q,
+      userAnswer: answers[i] ?? null,
+      isCorrect: answers[i] === q["Richtige Antwort"],
+    }));
+
+    let passed: boolean | null = null;
+    if (statusExam === "fini") {
+      const correctCount = answeredQuestions.filter((q) => q.isCorrect).length;
+      passed = (correctCount / answeredQuestions.length) * 100 >= 70;
+    }
+
+    const startedAt =
+      currentExam?.startedAt ??
+      Date.now() - (totalMinutes * 60 - secondsLeft) * 1000;
+
+    const elapsedTime =
+      statusExam === "fini"
+        ? Math.floor((Date.now() - startedAt) / 1000)
+        : undefined;
+
+    const wrongQuestions = answeredQuestions.filter(
+      (q) => q.isCorrect === false
+    );
+
+    const exam: StoredExam = {
+      currentIndex: 0,
+      secondsLeft,
+      startedAt,
+      elapsedTime,
+      questions: answeredQuestions,
+      statusExam, // 👈 "fini" ou "encours"
+      passed,
+      wrongQuestions,
+    };
+
+    try {
+      if (statusExam === "fini") {
+        const existing = await AsyncStorage.getItem("allExams");
+        const allExams: StoredExam[] = existing ? JSON.parse(existing) : [];
+
+        const maxIndex = allExams.length
+          ? Math.max(...allExams.map((e) => e.currentIndex))
+          : 0;
+        exam.currentIndex = maxIndex + 1;
+
+        allExams.push(exam);
+        await AsyncStorage.setItem("allExams", JSON.stringify(allExams));
+        await AsyncStorage.removeItem("currentExam");
+      }
+    } catch (err) {
+      console.error("Erreur sauvegarde exam:", err);
+    }
+
+    return exam;
   };
 
   const handleFinishExam = async () => {
-    let mistakesOverall = 0;
+    // Stop timer
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    // calcul des erreurs globales et par thème
+    let mistakesOverallLocal = 0;
     const mistakesPerTopic: Record<string, number> = {};
 
     questions.forEach((q, i) => {
       const ans = answers[i];
       if (ans && ans !== q["Richtige Antwort"]) {
-        mistakesOverall++;
+        mistakesOverallLocal++;
         mistakesPerTopic[q.Thema] = (mistakesPerTopic[q.Thema] || 0) + 1;
       }
     });
 
-    const failByTopic = Object.values(mistakesPerTopic).some((m) => m > 6);
-    const failOverall = mistakesOverall > 15;
-    const passed = !failByTopic && !failOverall;
+    setMistakesOverall(mistakesOverallLocal);
 
-    console.log("result", String(passed), mistakesOverall);
+    // Sauvegarder l’examen avec status "fini"
+    const examToShow = await saveExam(answers, "fini");
 
-    // Stocker le statut 'fini' dans AsyncStorage
-    await saveExam(currentIndex, answers, "fini");
-
-    // Retour au screen précédent
-    router.back();
-  };
-
-  const saveExam = async (
-    index: number,
-    answers: (string | null)[],
-    statusExam: "encours" | "fini" = "encours"
-  ) => {
-    const exam: StoredExam = {
-      currentIndex: index,
-      secondsLeft,
-      startedAt: Date.now(),
-      questions: questions.map((q, i) => ({
-        ...q,
-        userAnswer: answers[i],
-        correctAnswer: q["Richtige Antwort"],
-        isCorrect:
-          answers[i] == null ? null : answers[i] === q["Richtige Antwort"],
-      })),
-      statusExam,
-    };
-    try {
-      await AsyncStorage.setItem("currentExam", JSON.stringify(exam));
-    } catch (err) {
-      console.error("Erreur sauvegarde exam:", err);
+    // S’assurer que le state est mis à jour AVANT d’afficher le modal
+    if (examToShow) {
+      setCurrentExam(examToShow);
+      setShowResultModal(true); // <-- modal ouvert ici
     }
   };
 
@@ -240,6 +292,7 @@ export default function ExamQuizz() {
           { justifyContent: "center", alignItems: "center" },
         ]}
       >
+        <StatusBar barStyle="light-content" backgroundColor="black" />
         <ActivityIndicator size="large" color="green" />
         <Text>Fragen werden geladen...</Text>
       </View>
@@ -248,9 +301,10 @@ export default function ExamQuizz() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       {/* Header */}
       <View style={general_styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => handleFinishExam()}>
           <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
       </View>
@@ -330,19 +384,26 @@ export default function ExamQuizz() {
         </TouchableOpacity>
       </View>
 
-      <TimeoutModal
+      {/* <TimeoutModal
         visible={timeoutVisible}
         correctAnswer=""
         onClose={() => {
           handleFinishExam();
-          setTimeoutVisible(false);
         }}
-      />
+      /> */}
       <LimitMistakesModal
         visible={limitMistakesVisible}
         onClose={() => {
           handleFinishExam();
           setLimitMistakesVisible(false);
+        }}
+      />
+      <ResultModal
+        visible={showResultModal}
+        exam={currentExam!}
+        onClose={() => {
+          setShowResultModal(false);
+          setTimeout(() => router.back(), 200);
         }}
       />
     </View>

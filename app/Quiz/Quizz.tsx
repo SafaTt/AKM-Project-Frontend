@@ -12,6 +12,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -115,17 +116,6 @@ const Quizz: React.FC = () => {
     }
   };
 
-  const resetQuiz = async () => {
-    try {
-      const key = `quiz_${topicName}`;
-      await AsyncStorage.removeItem(key); // ❌ supprime toutes les réponses sauvegardées
-      setCurrentIndex(0); // retourne à la première question
-      setSelectedOption(null); // réinitialise la sélection
-    } catch (error) {
-      console.error("Erreur lors de la réinitialisation :", error);
-    }
-  };
-
   const handleAnswer = async (userAnswer: string, rightAnswer: string) => {
     setCorrectAnswer(rightAnswer);
 
@@ -183,6 +173,7 @@ const Quizz: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.center}>
+        <StatusBar barStyle="light-content" backgroundColor="black" />
         <ActivityIndicator size="large" color={Colors.secondary} />
         <Text>Lädt Quiz...</Text>
       </View>
@@ -192,6 +183,7 @@ const Quizz: React.FC = () => {
   if (questions.length === 0) {
     return (
       <View style={styles.center}>
+        <StatusBar barStyle="light-content" backgroundColor="black" />
         <Text>Keine Fragen gefunden.</Text>
       </View>
     );
@@ -201,6 +193,7 @@ const Quizz: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       <View style={general_styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color="black" />

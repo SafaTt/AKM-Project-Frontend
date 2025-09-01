@@ -1,6 +1,4 @@
-import PrimaryCTA from "@/components/PrimaryCTA";
 import ProgressDisplay from "@/components/ProgressDisplay";
-import SecondaryCTAs from "@/components/SecondaryCTAs";
 import { general_styles } from "@/constants/General_styles";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -29,17 +27,17 @@ export default function HomeScreen() {
         <ProgressDisplay progress={userProgress} />
 
         {/* CTA principal */}
-        <PrimaryCTA
+        {/* <PrimaryCTA
           title="Übungsprüfung"
           onPress={() => console.log("Übungsprüfung")}
-        />
+        /> */}
 
         {/* CTA secondaires */}
-        <SecondaryCTAs
+        {/* <SecondaryCTAs
           onPressKategorien={() => console.log("Kategorien")}
           onPressStatistik={() => console.log("Statistik")}
           onPressEinstellungen={() => console.log("Einstellungen")}
-        />
+        /> */}
       </View>
     </View>
   );
