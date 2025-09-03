@@ -23,7 +23,7 @@ const TimeoutModal: React.FC<TimeoutModalProps> = ({
           <LottieView
             source={require("@/assets/lottie/timeout2.json")} // mets ton fichier lottie ici
             autoPlay
-            loop={false}
+            loop={true}
             style={{ width: 150, height: 150, marginBottom: 20 }}
           />
           <Text style={styles.title}>Zeit abgelaufen!</Text>

@@ -45,7 +45,8 @@ export default function ÜbungsprüfungIntro() {
           // if (currentExam) combined.unshift(currentExam); // en cours en premier
 
           // Trier par currentIndex croissant (examen en cours peut avoir 0)
-          combined.sort((a, b) => a.currentIndex - b.currentIndex);
+          // combined.sort((a, b) => a.currentIndex - b.currentIndex);
+          combined.sort((a, b) => b.currentIndex - a.currentIndex);
 
           setExams(combined);
         } catch (err) {

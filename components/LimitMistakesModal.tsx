@@ -1,8 +1,7 @@
 import { Colors } from "@/constants/Colors";
-import { general_styles } from "@/constants/General_styles";
 import LottieView from "lottie-react-native";
 import React from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, Text, View } from "react-native";
 
 interface LimitMistakesModalProps {
   visible: boolean;
@@ -21,17 +20,13 @@ const LimitMistakesModal: React.FC<LimitMistakesModalProps> = ({
           <LottieView
             source={require("@/assets/lottie/mistakes.json")}
             autoPlay
-            loop={false}
+            loop={true}
             style={{ width: 150, height: 150, marginBottom: 20 }}
           />
           <Text style={styles.title}>Spiel beendet!</Text>
           <Text style={styles.message}>
             Die maximale Fehleranzahl wurde erreicht.
           </Text>
-
-          <TouchableOpacity style={general_styles.closeBtn} onPress={onClose}>
-            <Text style={{ color: "white", fontWeight: "bold" }}>OK</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>

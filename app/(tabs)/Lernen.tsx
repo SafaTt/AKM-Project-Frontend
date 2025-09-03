@@ -1,18 +1,20 @@
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
 import * as Papa from "papaparse";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
+  Dimensions,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { ProgressBar } from "react-native-paper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const { width, height } = Dimensions.get("window");
 interface QuestionRow {
   Nummer: string;
   Frage: string;
@@ -47,7 +49,6 @@ const csvFiles = [
 ];
 
 export default function Lernen() {
-
   const [loading, setLoading] = useState(true);
   const [topics, setTopics] = useState<
     {
@@ -108,68 +109,68 @@ export default function Lernen() {
 
   //chargé les donnée du localstorage
   useEffect(() => {
-  const fetchCSVAndProgress = async () => {
-    try {
-      const promises = csvFiles.map(async (file) => {
-        const response = await fetch(file.url);
-        const text = await response.text();
+    const fetchCSVAndProgress = async () => {
+      try {
+        const promises = csvFiles.map(async (file) => {
+          const response = await fetch(file.url);
+          const text = await response.text();
 
-        return new Promise<{
-          title: string;
-          questions: number;
-          progress: number;
-          boxes: number[];
-          url: any;
-        }>(async (resolve) => {
-          Papa.parse<QuestionRow>(text, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (parsed) => {
-              const validRows = parsed.data.filter(
-                (row) => row.Frage && row.Frage.trim().length > 0
-              );
+          return new Promise<{
+            title: string;
+            questions: number;
+            progress: number;
+            boxes: number[];
+            url: any;
+          }>(async (resolve) => {
+            Papa.parse<QuestionRow>(text, {
+              header: true,
+              skipEmptyLines: true,
+              complete: async (parsed) => {
+                const validRows = parsed.data.filter(
+                  (row) => row.Frage && row.Frage.trim().length > 0
+                );
 
-              // 🔹 Charger réponses utilisateur depuis AsyncStorage
-              const key = `quiz_${file.title}`;
-              const stored = await AsyncStorage.getItem(key);
-              const answers = stored ? JSON.parse(stored) : [];
+                // 🔹 Charger réponses utilisateur depuis AsyncStorage
+                const key = `quiz_${file.title}`;
+                const stored = await AsyncStorage.getItem(key);
+                const answers = stored ? JSON.parse(stored) : [];
 
-              // 🔹 Calcul progression
-              const progress = answers.length / validRows.length;
+                // 🔹 Calcul progression
+                const progress = answers.length / validRows.length;
 
-              // 🔹 Calcul des boxes (ici très simplifié : Box1 = total - réponses correctes, Box2 = réponses correctes)
-              let boxes = [0, 0, 0, 0, 0];
-              answers.forEach((a: any) => {
-                if (a.isCorrect) {
-                  boxes[1] += 1; // en vrai → avancer dans la box suivante
-                } else {
-                  boxes[0] += 1;
-                }
-              });
+                // 🔹 Calcul des boxes (ici très simplifié : Box1 = total - réponses correctes, Box2 = réponses correctes)
+                let boxes = [0, 0, 0, 0, 0];
+                answers.forEach((a: any) => {
+                  if (a.isCorrect) {
+                    boxes[1] += 1; // en vrai → avancer dans la box suivante
+                  } else {
+                    boxes[0] += 1;
+                  }
+                });
 
-              resolve({
-                title: file.title,
-                questions: validRows.length,
-                progress,
-                boxes,
-                url: file.url,
-              });
-            },
+                resolve({
+                  title: file.title,
+                  questions: validRows.length,
+                  progress,
+                  boxes,
+                  url: file.url,
+                });
+              },
+            });
           });
         });
-      });
 
-      const results = await Promise.all(promises);
-      setTopics(results);
-    } catch (err) {
-      console.error("Erreur CSV:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const results = await Promise.all(promises);
+        setTopics(results);
+      } catch (err) {
+        console.error("Erreur CSV:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchCSVAndProgress();
-}, []);
+    fetchCSVAndProgress();
+  }, []);
 
   return (
     <View style={[general_styles.container]}>
@@ -178,10 +179,15 @@ export default function Lernen() {
           {loading ? (
             <View
               style={{
-                marginTop: "25%",
+                marginTop: height * 0.2,
               }}
             >
-              <ActivityIndicator size={"large"} color={Colors.secondary} />
+              <LottieView
+                source={require("@/assets/lottie/load.json")}
+                autoPlay
+                loop={true}
+                style={{ width: 200, height: 200 }}
+              />
             </View>
           ) : (
             topics.map((topic, index) => (

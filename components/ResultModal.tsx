@@ -2,9 +2,8 @@ import { StoredExam } from "@/app/Quiz/ExamQuizz";
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -25,10 +24,9 @@ const ResultModal: React.FC<ResultModalProps> = ({
   exam,
   onClose,
 }) => {
-  const router = useRouter();
-  if (!exam) return null;
+  const [showSavedModal, setShowSavedModal] = useState(false);
 
-  console.log("exammm", exam);
+  if (!exam) return null;
 
   // Calcul des erreurs par thème
   const mistakesPerTopic: Record<string, number> = {};
@@ -38,11 +36,6 @@ const ResultModal: React.FC<ResultModalProps> = ({
     }
   });
 
-  const totalMistakes = exam.questions.filter(
-    (q) => q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
-  ).length;
-
-  const failOverall = totalMistakes > 15;
   const totalQuestions = exam.questions.length;
   const correctAnswers = exam.questions.filter(
     (q) => q.userAnswer === q["Richtige Antwort"]
@@ -58,21 +51,19 @@ const ResultModal: React.FC<ResultModalProps> = ({
   const passed = successRate >= minSuccessRate && !failByTopic;
 
   // Créer un set de pratique pour les mauvaises réponses
+  // ✅ Sauvegarde les questions fausses dans AsyncStorage
   const handlePracticeWrongQuestions = async () => {
     const wrongQuestions = exam.questions.filter(
       (q) => q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
     );
-    await AsyncStorage.setItem(
-      "practiceWrongQuestions",
-      JSON.stringify(wrongQuestions)
-    );
-    alert(`${wrongQuestions.length} Fragen für Übung gespeichert!`);
-  };
 
-  // Mettre à jour le status du match et retourner en arrière
-  const handleFinishExam = async () => {
-    // router.back();
-    onClose();
+    // Utilisation de l'index de l'examen généré dans saveExam
+    const key = `practiceWrongQuestions_${exam.currentIndex}`;
+
+    await AsyncStorage.setItem(key, JSON.stringify(wrongQuestions));
+
+    // Au lieu d'un alert → on déclenche un modal de confirmation
+    setShowSavedModal(true);
   };
 
   return (
@@ -86,7 +77,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
                 : require("@/assets/lottie/fail.json")
             }
             autoPlay
-            loop={false}
+            loop={true}
             style={
               passed ? { width: 150, height: 150 } : { width: 130, height: 130 }
             }
@@ -158,6 +149,34 @@ const ResultModal: React.FC<ResultModalProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+
+      {showSavedModal && (
+        <Modal transparent animationType="fade" visible={showSavedModal}>
+          <View style={styles.overlay}>
+            <View style={styles.confirmBox}>
+              <Text style={styles.confirmText}>
+                {
+                  exam.questions.filter(
+                    (q) =>
+                      q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
+                  ).length
+                }{" "}
+                Fragen für Übung gespeichert!
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  general_styles.closeBtn,
+                  { backgroundColor: Colors.secondary },
+                ]}
+                onPress={() => setShowSavedModal(false)}
+              >
+                <Text style={{ color: "white", fontWeight: "bold" }}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </Modal>
   );
 };
@@ -210,5 +229,19 @@ const styles = StyleSheet.create({
   answerText: {
     fontSize: 14,
     marginBottom: 4,
+  },
+
+  confirmBox: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    width: "80%",
+  },
+  confirmText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 15,
+    color: Colors.primary,
   },
 });

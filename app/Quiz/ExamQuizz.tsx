@@ -164,21 +164,52 @@ export default function ExamQuizz() {
     setIsAnswerCorrect(isCorrect);
     setShowResult(true);
 
-    if (!isCorrect) {
-      setMistakesOverall((prev) => prev + 1);
-    }
-
-    // Mettre à jour réponses
+    // Copie des réponses mises à jour
     const updated = [...answers];
     updated[currentIndex] = selectedOption;
     setAnswers(updated);
 
-    // 👉 Sauvegarde seulement si ce n’est PAS la dernière question
+    // 🔹 Calcul des erreurs globales et par thème
+    let mistakesOverallLocal = mistakesOverall;
+    const mistakesPerTopic: Record<string, number> = {};
+
+    questions.forEach((q, i) => {
+      const ans = updated[i];
+      if (ans && ans !== q["Richtige Antwort"]) {
+        mistakesOverallLocal++;
+        mistakesPerTopic[q.Thema] = (mistakesPerTopic[q.Thema] || 0) + 1;
+      }
+    });
+
+    setMistakesOverall(mistakesOverallLocal);
+
+    // 🔴 Vérification limite par thème
+    const hasTopicLimit = Object.values(mistakesPerTopic).some((m) => m >= 6);
+    if (!isCorrect && hasTopicLimit) {
+      setLimitMistakesVisible(true);
+      setTimeout(() => {
+        setLimitMistakesVisible(false);
+        handleFinishExam();
+      }, 2500);
+      return;
+    }
+
+    // 🔴 Vérification limite globale (déjà existante)
+    if (!isCorrect && mistakesOverallLocal >= 15) {
+      setLimitMistakesVisible(true);
+      setTimeout(() => {
+        setLimitMistakesVisible(false);
+        handleFinishExam();
+      }, 2500);
+      return;
+    }
+
+    // Sauvegarde seulement si ce n’est PAS la dernière question
     if (currentIndex < questions.length - 1) {
       saveExam(updated, "encours");
     }
 
-    // après 1.5s → prochaine question OU fin
+    // après 1s → prochaine question OU fin
     setTimeout(async () => {
       if (currentIndex < questions.length - 1) {
         setCurrentIndex((i) => i + 1);
@@ -186,7 +217,7 @@ export default function ExamQuizz() {
         setIsAnswerCorrect(null);
         setShowResult(false);
       } else {
-        await handleFinishExam(); // ✅ ici ce sera bien "fini"
+        await handleFinishExam(); // ✅ fin normale
       }
     }, 1000);
   };
