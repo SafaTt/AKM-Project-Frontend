@@ -26,5 +26,6 @@ export const Colors = {
   secondary: "#049c44",
   primary: "#000",
   vertClair: "rgba(4,156,68, 0.2)",
-  falsch:"#D32F2F"
+  falsch: "#D32F2F",
+  secondBtns: "#f39c12",
 };

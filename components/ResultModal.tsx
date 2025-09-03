@@ -2,6 +2,7 @@ import { StoredExam } from "@/app/Quiz/ExamQuizz";
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
@@ -24,7 +25,9 @@ const ResultModal: React.FC<ResultModalProps> = ({
   exam,
   onClose,
 }) => {
+  const router = useRouter();
   const [showSavedModal, setShowSavedModal] = useState(false);
+  const [wrongQuestionsCount, setWrongQuestionsCount] = useState(0);
 
   if (!exam) return null;
 
@@ -41,28 +44,21 @@ const ResultModal: React.FC<ResultModalProps> = ({
     (q) => q.userAnswer === q["Richtige Antwort"]
   ).length;
 
-  const successRate = (correctAnswers / totalQuestions) * 100; // en %
-  const minSuccessRate = 70; // seuil de réussite 70%
-
-  // Vérification erreurs par thème
+  const successRate = (correctAnswers / totalQuestions) * 100;
+  const minSuccessRate = 70;
   const failByTopic = Object.values(mistakesPerTopic).some((m) => m > 6);
-
-  // Résultat final
   const passed = successRate >= minSuccessRate && !failByTopic;
 
-  // Créer un set de pratique pour les mauvaises réponses
-  // ✅ Sauvegarde les questions fausses dans AsyncStorage
+  // Sauvegarde les questions fausses et ouvre le modal de confirmation
   const handlePracticeWrongQuestions = async () => {
     const wrongQuestions = exam.questions.filter(
       (q) => q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
     );
 
-    // Utilisation de l'index de l'examen généré dans saveExam
+    setWrongQuestionsCount(wrongQuestions.length);
+
     const key = `practiceWrongQuestions_${exam.currentIndex}`;
-
     await AsyncStorage.setItem(key, JSON.stringify(wrongQuestions));
-
-    // Au lieu d'un alert → on déclenche un modal de confirmation
     setShowSavedModal(true);
   };
 
@@ -77,7 +73,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
                 : require("@/assets/lottie/fail.json")
             }
             autoPlay
-            loop={true}
+            loop
             style={
               passed ? { width: 150, height: 150 } : { width: 130, height: 130 }
             }
@@ -129,7 +125,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
           <TouchableOpacity
             style={[
               general_styles.closeBtn,
-              { marginTop: 10, backgroundColor: "#f39c12" },
+              { marginTop: 10, backgroundColor: Colors.secondBtns },
             ]}
             onPress={handlePracticeWrongQuestions}
           >
@@ -155,24 +151,56 @@ const ResultModal: React.FC<ResultModalProps> = ({
           <View style={styles.overlay}>
             <View style={styles.confirmBox}>
               <Text style={styles.confirmText}>
-                {
-                  exam.questions.filter(
-                    (q) =>
-                      q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
-                  ).length
-                }{" "}
-                Fragen für Übung gespeichert!
+                {wrongQuestionsCount} Fragen für Übung gespeichert!
               </Text>
 
-              <TouchableOpacity
-                style={[
-                  general_styles.closeBtn,
-                  { backgroundColor: Colors.secondary },
-                ]}
-                onPress={() => setShowSavedModal(false)}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginTop: 15,
+                }}
               >
-                <Text style={{ color: "white", fontWeight: "bold" }}>OK</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    general_styles.closeBtn,
+                    {
+                      backgroundColor: Colors.secondary,
+                      width: "45%",
+                      margin: 10,
+                    },
+                  ]}
+                  onPress={() => {
+                    setShowSavedModal(false);
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "bold" }}>
+                    Abbrechen
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    general_styles.closeBtn,
+                    {
+                      backgroundColor: Colors.secondBtns,
+                      width: "45%",
+                      margin: 10,
+                    },
+                  ]}
+                  onPress={() => {
+                    setShowSavedModal(false);
+                    router.push({
+                      pathname: "/Quiz/PracticeWrongQuestions",
+                      params: { examIndex: exam.currentIndex.toString() },
+                    });
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "bold" }}>
+                    Üben
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>

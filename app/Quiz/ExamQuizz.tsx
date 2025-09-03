@@ -164,26 +164,23 @@ export default function ExamQuizz() {
     setIsAnswerCorrect(isCorrect);
     setShowResult(true);
 
-    // Copie des réponses mises à jour
     const updated = [...answers];
     updated[currentIndex] = selectedOption;
     setAnswers(updated);
 
-    // 🔹 Calcul des erreurs globales et par thème
-    let mistakesOverallLocal = mistakesOverall;
-    const mistakesPerTopic: Record<string, number> = {};
+    // 🔹 Incrémenter seulement si la réponse courante est fausse
+    if (!isCorrect) {
+      setMistakesOverall((prev) => prev + 1);
+    }
 
+    // Vérification limite globale ou par thème si nécessaire
+    const mistakesPerTopic: Record<string, number> = {};
     questions.forEach((q, i) => {
-      const ans = updated[i];
-      if (ans && ans !== q["Richtige Antwort"]) {
-        mistakesOverallLocal++;
+      if (updated[i] && updated[i] !== q["Richtige Antwort"]) {
         mistakesPerTopic[q.Thema] = (mistakesPerTopic[q.Thema] || 0) + 1;
       }
     });
 
-    setMistakesOverall(mistakesOverallLocal);
-
-    // 🔴 Vérification limite par thème
     const hasTopicLimit = Object.values(mistakesPerTopic).some((m) => m >= 6);
     if (!isCorrect && hasTopicLimit) {
       setLimitMistakesVisible(true);
@@ -194,8 +191,7 @@ export default function ExamQuizz() {
       return;
     }
 
-    // 🔴 Vérification limite globale (déjà existante)
-    if (!isCorrect && mistakesOverallLocal >= 15) {
+    if (!isCorrect && mistakesOverall + 1 >= 15) {
       setLimitMistakesVisible(true);
       setTimeout(() => {
         setLimitMistakesVisible(false);
@@ -204,12 +200,11 @@ export default function ExamQuizz() {
       return;
     }
 
-    // Sauvegarde seulement si ce n’est PAS la dernière question
+    // Sauvegarde si ce n’est pas la dernière question
     if (currentIndex < questions.length - 1) {
       saveExam(updated, "encours");
     }
 
-    // après 1s → prochaine question OU fin
     setTimeout(async () => {
       if (currentIndex < questions.length - 1) {
         setCurrentIndex((i) => i + 1);
@@ -217,7 +212,7 @@ export default function ExamQuizz() {
         setIsAnswerCorrect(null);
         setShowResult(false);
       } else {
-        await handleFinishExam(); // ✅ fin normale
+        await handleFinishExam();
       }
     }, 1000);
   };

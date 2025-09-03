@@ -7,7 +7,7 @@ import { useSharedValue } from "react-native-reanimated";
 import HomeScreen from ".";
 import LernenScreen from "./Lernen";
 import StatistikScreen from "./Statistik";
-import ÜbungsprüfungScreen from "./Übungsprüfung";
+import ÜbungsprüfungScreen from "./Uebungspruefung";
 
 const Tab = createBottomTabNavigator();
 const { width, height } = Dimensions.get("window");
@@ -26,7 +26,6 @@ export default function TabLayout() {
         tabBarStyle: { backgroundColor: "white" },
         tabBarActiveTintColor: "white", // label actif en blanc
         tabBarInactiveTintColor: "black", // label inactif en noir
-       
       }}
     >
       <Tab.Screen
@@ -82,7 +81,7 @@ export default function TabLayout() {
       />
 
       <Tab.Screen
-        name="Übungsprüfung"
+        name="Uebungspruefung"
         component={ÜbungsprüfungScreen}
         options={{
           tabBarIcon: ({ focused }) => (

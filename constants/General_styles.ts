@@ -11,6 +11,7 @@ export const general_styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   containerUI: { flex: 1, backgroundColor: Colors.primary },
+  whiteContainer: { backgroundColor: "white", flex: 1 },
   rowView: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -166,13 +167,13 @@ export const general_styles = StyleSheet.create({
     marginTop: 10,
   },
 
-   closeBtn: {
+  closeBtn: {
     marginTop: 20,
     backgroundColor: Colors.falsch,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
-    width:'85%',
-    alignItems:'center'
+    width: "85%",
+    alignItems: "center",
   },
 });
