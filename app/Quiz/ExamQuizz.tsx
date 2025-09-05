@@ -74,7 +74,7 @@ const getRandomSubset = (arr: Question[], n: number) => {
 export default function ExamQuizz() {
   const router = useRouter();
 
-  const totalMinutes = 0.2;
+  const totalMinutes = 60;
   const [secondsLeft, setSecondsLeft] = useState(totalMinutes * 60);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);

@@ -1,54 +1,60 @@
-// app/components/ProgressDisplay.tsx
 import { Colors } from "@/constants/Colors";
-import React from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
-import Svg, { Circle } from "react-native-svg";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
+import { PieChart } from "react-native-gifted-charts";
 
 const { width } = Dimensions.get("window");
-const CIRCLE_SIZE = width * 0.4;
-const STROKE_WIDTH = 12;
-const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 interface ProgressDisplayProps {
-  progress: number; // valeur en % (0 à 100)
+  progress: number; // 0 à 100
 }
 
 export default function ProgressDisplay({ progress }: ProgressDisplayProps) {
   const clampedProgress = Math.min(Math.max(progress, 0), 100);
-  const strokeDashoffset =
-    CIRCUMFERENCE - (CIRCUMFERENCE * clampedProgress) / 100;
+
+  const animatedProgress = useRef(new Animated.Value(0)).current;
+  const [displayProgress, setDisplayProgress] = useState(0);
+
+  useEffect(() => {
+    Animated.timing(animatedProgress, {
+      toValue: clampedProgress,
+      duration: 800,
+      useNativeDriver: false,
+    }).start();
+  }, [clampedProgress]);
+
+  // Met à jour displayProgress à chaque tick d'animation
+  useEffect(() => {
+    const listener = animatedProgress.addListener(({ value }) => {
+      setDisplayProgress(Math.round(value));
+    });
+    return () => animatedProgress.removeListener(listener);
+  }, []);
+
+  const data = [
+    {
+      value: displayProgress, // Progression animée
+      color: Colors.secondary,
+      gradientCenterColor: Colors.secondary,
+    },
+    {
+      value: 100 - displayProgress, // Fond
+      color: Colors.vertClair,
+      gradientCenterColor: Colors.vertClair,
+    },
+  ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.circleContainer}>
-        <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
-          {/* Cercle de fond */}
-          <Circle
-            stroke={Colors.vertClair}
-            fill="none"
-            cx={CIRCLE_SIZE / 2}
-            cy={CIRCLE_SIZE / 2}
-            r={RADIUS}
-            strokeWidth={STROKE_WIDTH}
-          />
-          {/* Cercle de progression */}
-          <Circle
-            stroke={Colors.secondary}
-            fill="none"
-            cx={CIRCLE_SIZE / 2}
-            cy={CIRCLE_SIZE / 2}
-            r={RADIUS}
-            strokeWidth={STROKE_WIDTH}
-            strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            rotation="-90"
-            originX={CIRCLE_SIZE / 2}
-            originY={CIRCLE_SIZE / 2}
-          />
-        </Svg>
-        <Text style={styles.percentage}>{clampedProgress}%</Text>
+      <View style={styles.chartContainer}>
+        <PieChart
+          donut
+          innerRadius={width * 0.14}
+          radius={width * 0.2}
+          data={data}
+          showGradient={false}
+        />
+        <Text style={styles.percentage}>{displayProgress}%</Text>
       </View>
       <Text style={styles.label}>GESAMTFORTSCHRITT</Text>
     </View>
@@ -60,16 +66,9 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     marginTop: width * 0.05,
     alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: "column",
   },
-  label: {
-    fontSize: 16,
-    color: Colors.secondary,
-    marginBottom: 12,
-    fontWeight: "700",
-  },
-  circleContainer: {
+  chartContainer: {
     justifyContent: "center",
     alignItems: "center",
   },
@@ -78,5 +77,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: Colors.secondary,
+  },
+  label: {
+    fontSize: 16,
+    color: Colors.secondary,
+    marginTop: 12,
+    fontWeight: "700",
   },
 });

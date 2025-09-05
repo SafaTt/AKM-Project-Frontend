@@ -8,11 +8,13 @@ import {
 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Dimensions,
   ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -111,21 +113,27 @@ export default function ÜbungsprüfungIntro() {
           !exams.length && { alignItems: "center", justifyContent: "center" },
         ]}
       >
+        <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
+
         {!exams.length ? (
           <>
             <Image
-              source={require("@/assets/images/exam2.png")}
+              source={require("@/assets/images/examen.png")}
               style={general_styles.iconImg}
             />
-            <TouchableOpacity
+            <LinearGradient
+              colors={["#e7f5ecff", "#CEF2DB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={[
                 general_styles.startButton,
                 { width: "90%", marginTop: 10 },
               ]}
-              onPress={startExam}
             >
-              <Text style={general_styles.startButtonText}>Start Exam</Text>
-            </TouchableOpacity>
+              <TouchableOpacity onPress={startExam}>
+                <Text style={general_styles.startButtonText}>Start Exam</Text>
+              </TouchableOpacity>
+            </LinearGradient>
           </>
         ) : (
           <>
@@ -136,7 +144,7 @@ export default function ÜbungsprüfungIntro() {
                 padding: 10,
                 marginRight: width * 0.01,
               }}
-              onPress={startExam}
+              onPress={clearAllExams}
             >
               <Text
                 style={[

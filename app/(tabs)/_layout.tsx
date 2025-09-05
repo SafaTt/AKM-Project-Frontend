@@ -81,7 +81,7 @@ export default function TabLayout() {
       />
 
       <Tab.Screen
-        name="Uebungspruefung"
+        name="Übungsprüfung"
         component={ÜbungsprüfungScreen}
         options={{
           tabBarIcon: ({ focused }) => (

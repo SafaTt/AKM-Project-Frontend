@@ -1,13 +1,15 @@
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import * as Papa from "papaparse";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -61,51 +63,64 @@ export default function Lernen() {
   >([]);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCSV = async () => {
-      try {
-        const promises = csvFiles.map(async (file) => {
-          const response = await fetch(file.url);
-          const text = await response.text();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProgress = async () => {
+        try {
+          const results = await Promise.all(
+            csvFiles.map(async (file) => {
+              const response = await fetch(file.url);
+              const text = await response.text();
 
-          return new Promise<{
-            title: string;
-            questions: number;
-            progress: number;
-            boxes: number[];
-            url: any;
-          }>((resolve) => {
-            Papa.parse<QuestionRow>(text, {
-              header: true,
-              skipEmptyLines: true,
-              complete: (parsed) => {
-                const validRows = parsed.data.filter(
-                  (row) => row.Frage && row.Frage.trim().length > 0
-                );
+              return new Promise<{
+                title: string;
+                questions: number;
+                progress: number;
+                boxes: number[];
+                url: any;
+              }>((resolve) => {
+                Papa.parse<QuestionRow>(text, {
+                  header: true,
+                  skipEmptyLines: true,
+                  complete: async (parsed) => {
+                    const validRows = parsed.data.filter(
+                      (row) => row.Frage?.trim().length > 0
+                    );
+                    const key = `quiz_${file.title}`;
+                    const stored = await AsyncStorage.getItem(key);
+                    const answers = stored ? JSON.parse(stored) : [];
+                    const progress = answers.length / validRows.length;
 
-                resolve({
-                  title: file.title,
-                  questions: validRows.length,
-                  progress: 0,
-                  boxes: [0, 0, 0, 0, 0],
-                  url: file.url,
+                    let boxes = [0, 0, 0, 0, 0];
+                    answers.forEach((a: any) => {
+                      if (a.isCorrect) boxes[1] += 1;
+                      else boxes[0] += 1;
+                    });
+
+                    resolve({
+                      title: file.title,
+                      questions: validRows.length,
+                      progress,
+                      boxes,
+                      url: file.url,
+                    });
+                  },
                 });
-              },
-            });
-          });
-        });
+              });
+            })
+          );
 
-        const results = await Promise.all(promises);
-        setTopics(results);
-      } catch (err) {
-        console.error("Erreur CSV:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setTopics(results);
+        } catch (err) {
+          console.error("Erreur CSV:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchCSV();
-  }, []);
+      fetchProgress();
+    }, [])
+  );
 
   //chargé les donnée du localstorage
   useEffect(() => {
@@ -173,65 +188,78 @@ export default function Lernen() {
   }, []);
 
   return (
-    <View style={[general_styles.container]}>
-      <View style={general_styles.whiteView}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {loading ? (
-            <View
-              style={{
-                marginTop: height * 0.2,
-              }}
-            >
-              <LottieView
-                source={require("@/assets/lottie/load.json")}
-                autoPlay
-                loop={true}
-                style={{ width: 200, height: 200 }}
+   <View style={general_styles.container}>
+ <View style={[general_styles.whiteView,]}>
+      <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {loading ? (
+          <View
+            style={{
+              marginTop: height * 0.2,
+            }}
+          >
+            <LottieView
+              source={require("@/assets/lottie/load.json")}
+              autoPlay
+              loop={true}
+              style={{ width: 200, height: 200 }}
+            />
+          </View>
+        ) : (
+          topics.map((topic, index) => (
+            <View key={index} style={general_styles.topicCard}>
+              <Text style={general_styles.topicTitle}>{topic.title}</Text>
+              <Text style={general_styles.questionCount}>
+                {topic.questions} Fragen
+              </Text>
+
+              {/* Barre de progression */}
+              <ProgressBar
+                progress={topic.progress}
+                color={Colors.secondary}
+                style={general_styles.progressBar}
               />
-            </View>
-          ) : (
-            topics.map((topic, index) => (
-              <View key={index} style={general_styles.topicCard}>
-                <Text style={general_styles.topicTitle}>{topic.title}</Text>
-                <Text style={general_styles.questionCount}>
-                  {topic.questions} Fragen
-                </Text>
 
-                {/* Barre de progression */}
-                <ProgressBar
-                  progress={topic.progress}
-                  color={Colors.secondary}
-                  style={general_styles.progressBar}
-                />
+              {/* Boîtes */}
+              <View style={general_styles.boxesContainer}>
+                {topic.boxes.map((count, i) => (
+                  <View key={i} style={general_styles.box}>
+                    <Text style={general_styles.boxText}>{count}</Text>
+                  </View>
+                ))}
+              </View>
 
-                {/* Boîtes */}
-                <View style={general_styles.boxesContainer}>
-                  {topic.boxes.map((count, i) => (
-                    <View key={i} style={general_styles.box}>
-                      <Text style={general_styles.boxText}>{count}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* CTA */}
+              {/* CTA */}
+              <LinearGradient
+                colors={["#e7f5ecff", "#CEF2DB"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={general_styles.startButton} // garder le style existant
+              >
                 <TouchableOpacity
-                  style={general_styles.startButton}
                   onPress={() =>
                     router.push({
                       pathname: "../Quiz/Quizz",
                       params: { topicName: topic.title, topicUrl: topic.url },
                     })
                   }
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
                 >
                   <Text style={general_styles.startButtonText}>
                     Start Flashcards
                   </Text>
                 </TouchableOpacity>
-              </View>
-            ))
-          )}
-        </ScrollView>
-      </View>
+              </LinearGradient>
+            </View>
+          ))
+        )}
+      </ScrollView>
     </View>
+   </View>
   );
 }
