@@ -135,7 +135,7 @@ const Quizz: React.FC = () => {
       setShowFalsch(false);
       setIsAnswerCorrect(null);
       handleNext();
-    }, 3000);
+    }, 1000);
   };
 
   const saveAnswer = async (userAnswer: string, rightAnswer: string) => {

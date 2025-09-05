@@ -1,90 +1,322 @@
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
-import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
-  StyleSheet,
+  Image,
+  ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { BarChart } from "react-native-gifted-charts";
 
-const { width, height } = Dimensions.get("window");
+// 🔹 Images
+const quizImg = require("@/assets/images/generals/quiz.png");
+const examImg = require("@/assets/images/generals/exam.png");
 
 export default function Statistik() {
   const [selectedTab, setSelectedTab] = useState<"quizz" | "exam">("quizz");
+  const [quizStats, setQuizStats] = useState<any[]>([]);
+  const [examStats, setExamStats] = useState<any[]>([]);
+  const [totalCorrectAnswers, setTotalCorrectAnswers] = useState(0);
+  const [totalWrongAnswers, setTotalWrongAnswers] = useState(0);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // 🔹 Charger tous les quizzes
+        const keys = await AsyncStorage.getAllKeys();
+        const quizKeys = keys.filter((k) => k.startsWith("quiz_"));
+
+        let quizzes: any[] = [];
+        let totalCorrect = 0;
+        let totalWrong = 0;
+
+        for (let i = 0; i < quizKeys.length; i++) {
+          const key = quizKeys[i];
+          const stored = await AsyncStorage.getItem(key);
+          if (stored) {
+            const answers = JSON.parse(stored);
+            const correct = answers.filter((a: any) => a.isCorrect).length;
+            const wrong = answers.filter((a: any) => !a.isCorrect).length;
+            totalCorrect += correct;
+            totalWrong += wrong;
+
+            quizzes.push({
+              theme: `T ${i + 1}`, // Topic 1, Topic 2 ...
+              percent: Math.round((correct / answers.length) * 100),
+              total: answers.length,
+            });
+          }
+        }
+
+        setQuizStats(quizzes);
+        setTotalCorrectAnswers(totalCorrect);
+        setTotalWrongAnswers(totalWrong);
+
+        // 🔹 Charger les exams
+        const storedExams = await AsyncStorage.getItem("allExams");
+        const allExams = storedExams ? JSON.parse(storedExams) : [];
+
+        const exams = allExams.map((exam: any, idx: number) => {
+          const correct = exam.questions.filter((q: any) => q.isCorrect).length;
+          const percent = Math.round((correct / exam.questions.length) * 100);
+
+          return {
+            title: `E ${idx + 1}`,
+            percent,
+            passed: exam.passed,
+            elapsed: exam.elapsedTime,
+          };
+        });
+
+        setExamStats(exams);
+      } catch (err) {
+        console.error("Erreur stats:", err);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  const currentData = selectedTab === "quizz" ? quizStats : examStats;
+
+  // Statistiques des exams
+  const totalExams = examStats.length;
+  const passedExams = examStats.filter((e) => e.passed).length;
+  const failedExams = totalExams - passedExams;
+  const averageScore =
+    totalExams > 0
+      ? Math.round(
+          examStats.reduce((acc, e) => acc + e.percent, 0) / totalExams
+        )
+      : 0;
 
   return (
-    <View style={general_styles.whiteContainer}>
-      {/* Switch entre Quizz / Examens */}
-      <View style={styles.switchContainer}>
-        <TouchableOpacity
-          style={[
-            styles.switchButton,
-            selectedTab === "quizz" && { backgroundColor: Colors.primary },
-          ]}
-          onPress={() => setSelectedTab("quizz")}
-        >
-          <Text
-            style={[
-              styles.switchText,
-              selectedTab === "quizz" && { color: "white" },
-            ]}
-          >
-            Quizz
-          </Text>
-        </TouchableOpacity>
+    <View style={[general_styles.whiteContainer, { padding: 16 }]}>
+      <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
 
-        <TouchableOpacity
-          style={[
-            styles.switchButton,
-            selectedTab === "exam" && { backgroundColor: Colors.primary },
-          ]}
-          onPress={() => setSelectedTab("exam")}
-        >
-          <Text
-            style={[
-              styles.switchText,
-              selectedTab === "exam" && { color: "white" },
-            ]}
-          >
-            Examen
-          </Text>
-        </TouchableOpacity>
+      {/* Onglets */}
+      <View style={{ flexDirection: "row", marginBottom: 20, marginTop: "2%" }}>
+        {[
+          { key: "quizz", label: "Quiz", img: quizImg },
+          { key: "exam", label: "Prüfung", img: examImg },
+        ].map((tab) => {
+          const isActive = selectedTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={{
+                flex: 1,
+                padding: 12,
+                backgroundColor: isActive
+                  ? Colors.secondary
+                  : Colors.secondaryClair,
+                borderRadius: 10,
+                marginHorizontal: 5,
+                alignItems: "center",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 6,
+                elevation: 4,
+              }}
+              onPress={() => setSelectedTab(tab.key as "quizz" | "exam")}
+            >
+              <Image
+                source={tab.img}
+                style={{ width: 40, height: 40, marginBottom: 6 }}
+                resizeMode="contain"
+              />
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: isActive ? "white" : "black",
+                  fontWeight: isActive ? "700" : "400",
+                  fontSize: 16,
+                }}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {/* Contenu des stats */}
-      <View style={{ flex: 1, marginTop: height * 0.02 }}>
-        {selectedTab === "quizz" ? (
-          <Text style={{ fontSize: width * 0.045 }}>
-            📊 Statistiken für Quizz
-          </Text>
-        ) : (
-          <Text style={{ fontSize: width * 0.045 }}>
-            📊 Statistiken für Examen
-          </Text>
+      <ScrollView>
+        {/* BarChart */}
+        <View style={general_styles.barView}>
+          <BarChart
+            data={currentData.map((item, idx) => ({
+              value: item.percent,
+              label: item.theme || item.title,
+              frontColor: item.percent >= 70 ? "#049c44" : "#CEF2DB",
+              barBorderRadius: 20,
+            }))}
+            barWidth={30}
+            noOfSections={5}
+            maxValue={100}
+            showValuesAsTopLabel
+            yAxisLabelTexts={["0", "20", "40", "60", "80", "100"]}
+            yAxisTextStyle={{ color: "#494848ff" }}
+          />
+        </View>
+
+        {/* Exam Stats */}
+        {selectedTab === "exam" && examStats.length > 0 && (
+          <View
+            style={{
+              marginTop: 20,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+            }}
+          >
+            {[
+              { label: "Gesamt", value: totalExams, icon: "📋" },
+              { label: "Bestanden", value: passedExams, icon: "🏆" },
+              { label: "Nicht bestanden", value: failedExams, icon: "⚠️" },
+            ].map((stat, idx) => (
+              <LinearGradient
+                key={idx}
+                colors={["#CEF2DB", "#fff"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{
+                  width: "32%",
+                  marginBottom: 12,
+                  padding: 16,
+                  borderRadius: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 6,
+                  elevation: 4,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 28, marginBottom: 6 }}>
+                  {stat.icon}
+                </Text>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    marginBottom: 4,
+                    color: "#004d40",
+                    fontSize: 14,
+                    alignSelf: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  {stat.label}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "700",
+                    color: "#004d40",
+                  }}
+                >
+                  {stat.value}
+                </Text>
+              </LinearGradient>
+            ))}
+          </View>
         )}
-      </View>
+
+        {/* Quiz Stats */}
+        {selectedTab === "quizz" && quizStats.length > 0 && (
+          <View
+            style={{
+              marginTop: 20,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+            }}
+          >
+            {[
+              { label: "Gesamt", value: quizStats.length, icon: "📋" },
+              {
+                label: "Beste Antworten",
+                value: totalCorrectAnswers,
+                icon: "🏆",
+              },
+              {
+                label: "Falsche Antworten",
+                value: totalWrongAnswers,
+                icon: "⚠️",
+              },
+            ].map((stat, idx) => (
+              <LinearGradient
+                key={idx}
+                colors={["#CEF2DB", "#fff"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{
+                  width: "32%",
+                  marginBottom: 12,
+                  padding: 16,
+                  borderRadius: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 6,
+                  elevation: 4,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 28, marginBottom: 6 }}>
+                  {stat.icon}
+                </Text>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    marginBottom: 4,
+                    color: "#004d40",
+                    fontSize: 14,
+                    alignSelf: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  {stat.label}
+                </Text>
+                <Text
+                  style={{ fontSize: 18, fontWeight: "700", color: "#004d40" }}
+                >
+                  {stat.value}
+                </Text>
+              </LinearGradient>
+            ))}
+          </View>
+        )}
+
+        {/* Footer */}
+        <View
+          style={{
+            marginTop: 20,
+            padding: 16,
+            backgroundColor: Colors.secondaryClair,
+            borderRadius: 12,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+            elevation: 4,
+          }}
+        >
+          <Text
+            style={{ textAlign: "center", fontWeight: "600", fontSize: 15 }}
+          >
+            <Text style={{ fontSize: 25 }}>⚡</Text>
+            Mach weiter so! Du bist auf dem{`\n`}richtigen Weg.
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  switchContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: height * 0.015, // 1.5% de la hauteur
-  },
-  switchButton: {
-    paddingVertical: height * 0.01, // 1% de la hauteur
-    paddingHorizontal: width * 0.05, // 5% de la largeur
-    borderRadius: width * 0.05, // arrondi responsive
-    backgroundColor: "#ccc",
-    marginHorizontal: width * 0.02,
-  },
-  switchText: {
-    fontWeight: "bold",
-    fontSize: width * 0.04, // texte adaptatif
-    color: "black",
-  },
-});

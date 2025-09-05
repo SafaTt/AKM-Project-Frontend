@@ -176,4 +176,15 @@ export const general_styles = StyleSheet.create({
     width: "85%",
     alignItems: "center",
   },
+  barView: {
+    margin: 6,
+    padding: 6,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4, // Android
+  },
 });
