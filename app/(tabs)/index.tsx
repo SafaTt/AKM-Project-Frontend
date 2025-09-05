@@ -7,8 +7,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
+const { height } = Dimensions.get("window");
 export default function HomeScreen() {
   const [overallProgress, setOverallProgress] = useState(0);
   useFocusEffect(
@@ -56,7 +63,9 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={general_styles.containerUI}>
+    <View style={general_styles.container}>
+      <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
+
       <View style={general_styles.rowView}>
         <Image
           source={require("../../assets/images/generals/logo.png")}
@@ -64,10 +73,10 @@ export default function HomeScreen() {
         />
         <Text style={general_styles.brandTitle}>Fischerprüfung Bayern</Text>
         <TouchableOpacity>
-          <Feather name="settings" size={24} color="white" />
+          <Feather name="settings" size={22} color="white" />
         </TouchableOpacity>
       </View>
-      <View style={general_styles.whiteView}>
+      <View style={[general_styles.whiteView, { marginTop: height * 0.01 }]}>
         {/* Cercle de progression */}
         <ProgressDisplay progress={overallProgress} />
 
