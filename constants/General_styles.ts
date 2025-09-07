@@ -15,7 +15,7 @@ export const general_styles = StyleSheet.create({
   rowView: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: "5%",
+    marginTop: "8%",
     marginLeft: width * 0.02,
     marginRight: width * 0.02,
     alignItems: "center",
@@ -140,7 +140,7 @@ export const general_styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: "2%",
+    marginTop: "5%",
     marginBottom: height * 0.02,
   },
   iconImg: {

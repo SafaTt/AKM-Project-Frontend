@@ -16,6 +16,11 @@
       }
     },
     "android": {
+      "navigationBar": {
+        "visible": true,
+        "barStyle": "light-content",
+        "backgroundColor": "transparent"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/generals/logo.png",
         "backgroundColor": "#ffffff"
