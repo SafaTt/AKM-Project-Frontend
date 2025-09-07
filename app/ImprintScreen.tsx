@@ -1,6 +1,7 @@
 // app/ImprintScreen.tsx
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
@@ -8,6 +9,7 @@ import Papa from "papaparse";
 import React, { useEffect, useState } from "react";
 import {
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,7 +27,7 @@ export default function ImprintScreen() {
   );
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => {
     const fetchImprint = async () => {
       try {
@@ -50,6 +52,16 @@ export default function ImprintScreen() {
     fetchImprint();
   }, []);
 
+  const clearStorage = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log("Tout le AsyncStorage a été vidé !");
+      setConfirmDelete(false);
+      router.back();
+    } catch (err) {
+      console.error("Erreur lors de la suppression des examens :", err);
+    }
+  };
   if (loading) {
     return (
       <View
@@ -119,6 +131,45 @@ export default function ImprintScreen() {
           <Text style={styles.okText}>Verstanden</Text>
         </TouchableOpacity>
       </View>
+      <View style={[styles.footer, { borderTopWidth: 0 }]}>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => setConfirmDelete(true)}
+        >
+          <Text style={[styles.okText, { color: Colors.secondary }]}>
+            Setzen Sie die App zurück
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal de confirmation */}
+      <Modal visible={confirmDelete} transparent animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Sind Sie sicher?</Text>
+            <Text style={styles.modalText}>
+              Diese Aktion wird alle gespeicherten Quiz- und Prüfungshistorien
+              löschen!
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: Colors.falsch }]}
+                onPress={clearStorage}
+              >
+                <Text style={styles.modalButtonText}>Löschen</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+                onPress={() => setConfirmDelete(false)}
+              >
+                <Text style={[styles.modalButtonText, { color: "#333" }]}>
+                  Abbrechen
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -193,4 +244,44 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
   },
+  deleteButton: {
+    borderColor: Colors.secondary,
+    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    width: width * 0.8,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalText: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#333",
+  },
+  modalButtons: { flexDirection: "row", justifyContent: "space-between" },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+  modalButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
 });
