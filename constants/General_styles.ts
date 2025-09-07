@@ -15,7 +15,7 @@ export const general_styles = StyleSheet.create({
   rowView: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: height * 0.03,
+    marginTop: "5%",
     marginLeft: width * 0.02,
     marginRight: width * 0.02,
     alignItems: "center",
@@ -55,6 +55,7 @@ export const general_styles = StyleSheet.create({
     backgroundColor: "white",
     height: "95%",
     width: "100%",
+    marginTop: "5%",
   },
   brandLogo: {
     width: 30,
@@ -139,7 +140,7 @@ export const general_styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: height * 0.005,
+    marginTop: "2%",
     marginBottom: height * 0.02,
   },
   iconImg: {

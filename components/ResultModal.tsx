@@ -122,17 +122,22 @@ const ResultModal: React.FC<ResultModalProps> = ({
             ))}
           </ScrollView>
 
-          <TouchableOpacity
-            style={[
-              general_styles.closeBtn,
-              { marginTop: 10, backgroundColor: Colors.secondBtns },
-            ]}
-            onPress={handlePracticeWrongQuestions}
-          >
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              Falsche Fragen lernen
-            </Text>
-          </TouchableOpacity>
+          {/* Afficher le bouton seulement si au moins une question est fausse */}
+          {exam.questions.some(
+            (q) => q.userAnswer !== q["Richtige Antwort"]
+          ) && (
+            <TouchableOpacity
+              style={[
+                general_styles.closeBtn,
+                { marginTop: 10, backgroundColor: Colors.secondBtns },
+              ]}
+              onPress={handlePracticeWrongQuestions}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                Falsche Fragen lernen
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[

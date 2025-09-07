@@ -189,9 +189,9 @@ export default function Lernen() {
 
   return (
     <View style={general_styles.container}>
-      <View style={[general_styles.whiteView]}>
-        <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
+      <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
 
+      <View style={[general_styles.whiteView]}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {loading ? (
             <View

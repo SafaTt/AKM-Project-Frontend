@@ -22,12 +22,7 @@
       },
 
       "edgeToEdge": true,
-      "package": "com.safatouil.AKMApp",
-      "navigationBar": {
-        "visible": true,
-        "barStyle": "dark-content",
-        "backgroundColor": "white"
-      }
+      "package": "com.safatouil.AKMApp"
     },
     "web": {
       "bundler": "metro",

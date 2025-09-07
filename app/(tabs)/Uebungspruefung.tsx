@@ -148,8 +148,9 @@ export default function ÜbungsprüfungIntro() {
                 alignSelf: "flex-end",
                 padding: 10,
                 marginRight: width * 0.01,
+                marginTop: "2%",
               }}
-              onPress={clearAllExams}
+              onPress={startExam}
             >
               <Text
                 style={[
