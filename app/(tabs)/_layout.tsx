@@ -4,7 +4,7 @@ import React from "react";
 import { Dimensions, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 
-import HomeScreen from ".";
+import HomeScreen from "./Home";
 import LernenScreen from "./Lernen";
 import StatistikScreen from "./Statistik";
 import ÜbungsprüfungScreen from "./Uebungspruefung";

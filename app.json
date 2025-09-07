@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/generals/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdge": true,
       "package": "com.safatouil.AKMApp"
     },
     "web": {
