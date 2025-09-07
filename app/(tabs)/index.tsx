@@ -6,16 +6,18 @@ import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Dimensions,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
-const { height } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 export default function HomeScreen() {
   const [overallProgress, setOverallProgress] = useState(0);
   useFocusEffect(
@@ -72,13 +74,17 @@ export default function HomeScreen() {
           style={general_styles.brandLogo}
         />
         <Text style={general_styles.brandTitle}>Fischerprüfung Bayern</Text>
-        <TouchableOpacity>
-          <Feather name="settings" size={22} color="white" />
+        <TouchableOpacity onPress={() => router.push("/ImprintScreen")}>
+          <Feather name="settings" size={22} color="black" />
         </TouchableOpacity>
       </View>
+
       <View style={[general_styles.whiteView, { marginTop: height * 0.01 }]}>
         {/* Cercle de progression */}
-        <ProgressDisplay progress={overallProgress} />
+        <View style={[styles.progressContainer]}>
+          <Text style={styles.progressLabel}>GESAMTFORTSCHRITT</Text>
+          <ProgressDisplay progress={overallProgress} />
+        </View>
 
         {/* CTA principal */}
         <PrimaryCTA
@@ -88,11 +94,57 @@ export default function HomeScreen() {
 
         {/* CTA secondaires */}
         <SecondaryCTAs
-          onPressKategorien={() => console.log("Kategorien")}
-          onPressStatistik={() => console.log("Statistik")}
-          onPressEinstellungen={() => console.log("Einstellungen")}
+          onPressKategorien={() => router.push("/Lernen")}
+          onPressStatistik={() => router.push("/Statistik")}
+          onPressEinstellungen={() => router.push("/ImprintScreen")}
         />
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  progressContainer: {
+    padding: 20,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+    alignItems: "center",
+    width: "95%",
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  primaryContainer: {
+    marginTop: 25,
+    alignItems: "center",
+  },
+  secondaryContainer: {
+    marginTop: 20,
+    marginHorizontal: 20,
+  },
+  gradientView: {
+    width: "95%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    padding: 20,
+    borderRadius: width * 0.15,
+    marginTop: height * 0.03,
+  },
+});

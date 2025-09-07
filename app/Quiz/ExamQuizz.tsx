@@ -4,11 +4,12 @@ import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
 import * as Papa from "papaparse";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   StatusBar,
   StyleSheet,
@@ -48,7 +49,8 @@ type Question = {
   "Antwort B": string;
   "Antwort C": string;
   "Richtige Antwort": string;
-  Thema: string; // pour savoir de quel CSV ça vient
+  Thema: string;
+  "Bild URL"?: string;
 };
 
 export type StoredExam = {
@@ -319,7 +321,13 @@ export default function ExamQuizz() {
         ]}
       >
         <StatusBar barStyle="light-content" backgroundColor="black" />
-        <ActivityIndicator size="large" color="green" />
+        {/* <ActivityIndicator size="large" color="green" /> */}
+        <LottieView
+          source={require("@/assets/lottie/loading.json")}
+          autoPlay
+          loop={true}
+          style={{ width: 150, height: 150, marginRight: width * 0.1 }}
+        />
         <Text>Fragen werden geladen...</Text>
       </View>
     );
@@ -358,9 +366,20 @@ export default function ExamQuizz() {
 
       {/* Question */}
       <View
-        style={[general_styles.questionCart, { padding: 16, marginTop: 20 }]}
+        style={[
+          general_styles.questionCart,
+          { padding: 16, marginTop: height * 0.01 },
+        ]}
       >
         <Text style={styles.topicText}>Thema: {current.Thema}</Text>
+        {current["Bild URL"] ? (
+          <Image
+            source={{ uri: current["Bild URL"] }}
+            style={styles.image}
+            contentFit="contain"
+          />
+        ) : null}
+
         <Text style={styles.questionText}>{current.Frage}</Text>
 
         {["A", "B", "C"].map((opt) => {
@@ -478,5 +497,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: height * 0.01,
     marginRight: width * 0.05,
+  },
+  image: {
+    width: "100%",
+    height: 180,
+    resizeMode: "contain",
+    marginBottom: 16,
   },
 });

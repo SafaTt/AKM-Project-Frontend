@@ -1,7 +1,8 @@
+import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Animated, Easing, View } from "react-native";
+import { Animated, Easing, StatusBar, View } from "react-native";
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -44,11 +45,25 @@ export default function SplashScreen() {
   }, [opacity, translateY, scale, router]);
 
   return (
-    <View style={general_styles.container}>
+    <View
+      style={[
+        general_styles.container,
+        {
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: Colors.secondary,
+        },
+      ]}
+    >
+      <StatusBar
+        backgroundColor={Colors.secondary}
+        barStyle={"light-content"}
+      />
+
       <Animated.Image
         source={require("../assets/images/generals/logo.png")}
         style={[
-          general_styles.logo,
+          general_styles.logoSplash,
           { opacity, transform: [{ translateY }, { scale }] },
         ]}
         resizeMode="contain"

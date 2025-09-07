@@ -172,10 +172,9 @@ export default function Statistik() {
                 barWidth={30}
                 noOfSections={5}
                 maxValue={100}
-                showValuesAsTopLabel
+                showValuesAsTopLabel={false}
                 yAxisLabelTexts={["0", "20", "40", "60", "80", "100"]}
                 yAxisTextStyle={{ color: "#494848ff" }}
-                // 🔹 Supprimer les lignes pointillées
                 // hideRules
               />
             </View>

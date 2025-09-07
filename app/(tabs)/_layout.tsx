@@ -35,7 +35,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "black" : "white",
+                backgroundColor: focused ? "#049c44" : "white",
                 borderRadius: ICON_CONTAINER_SIZE / 1.5,
                 width: width * 0.24,
                 height: ICON_CONTAINER_SIZE,
@@ -61,7 +61,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "black" : "white",
+                backgroundColor: focused ? "#049c44" : "white",
                 borderRadius: ICON_CONTAINER_SIZE / 1.5,
                 width: width * 0.24,
                 height: ICON_CONTAINER_SIZE,
@@ -87,7 +87,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "black" : "white",
+                backgroundColor: focused ? "#049c44" : "white",
                 borderRadius: ICON_CONTAINER_SIZE / 2,
                 width: width * 0.24,
                 height: ICON_CONTAINER_SIZE,
@@ -113,7 +113,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "black" : "white",
+                backgroundColor: focused ? "#049c44" : "white",
                 borderRadius: ICON_CONTAINER_SIZE / 2,
                 width: width * 0.24,
                 height: ICON_CONTAINER_SIZE,

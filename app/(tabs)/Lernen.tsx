@@ -188,55 +188,59 @@ export default function Lernen() {
   }, []);
 
   return (
-   <View style={general_styles.container}>
- <View style={[general_styles.whiteView,]}>
-      <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
+    <View style={general_styles.container}>
+      <View style={[general_styles.whiteView]}>
+        <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {loading ? (
-          <View
-            style={{
-              marginTop: height * 0.2,
-            }}
-          >
-            <LottieView
-              source={require("@/assets/lottie/load.json")}
-              autoPlay
-              loop={true}
-              style={{ width: 200, height: 200 }}
-            />
-          </View>
-        ) : (
-          topics.map((topic, index) => (
-            <View key={index} style={general_styles.topicCard}>
-              <Text style={general_styles.topicTitle}>{topic.title}</Text>
-              <Text style={general_styles.questionCount}>
-                {topic.questions} Fragen
-              </Text>
-
-              {/* Barre de progression */}
-              <ProgressBar
-                progress={topic.progress}
-                color={Colors.secondary}
-                style={general_styles.progressBar}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: height * 0.3,
+              }}
+            >
+              <LottieView
+                source={require("@/assets/lottie/loading.json")}
+                autoPlay
+                loop={true}
+                style={{ width: 150, height: 150, marginRight: width * 0.1 }}
               />
-
-              {/* Boîtes */}
-              <View style={general_styles.boxesContainer}>
-                {topic.boxes.map((count, i) => (
-                  <View key={i} style={general_styles.box}>
-                    <Text style={general_styles.boxText}>{count}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* CTA */}
-              <LinearGradient
-                colors={["#e7f5ecff", "#CEF2DB"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={general_styles.startButton} // garder le style existant
+              <Text
+                style={{
+                  marginTop: 10,
+                  fontWeight: "600",
+                  fontSize: 15,
+                  textAlign: "center",
+                }}
               >
+                Informationen zum Laden...
+              </Text>
+            </View>
+          ) : (
+            topics.map((topic, index) => (
+              <View key={index} style={general_styles.topicCard}>
+                <Text style={general_styles.topicTitle}>{topic.title}</Text>
+                <Text style={general_styles.questionCount}>
+                  {topic.questions} Fragen
+                </Text>
+                {/* Barre de progression */}
+                <ProgressBar
+                  progress={topic.progress}
+                  color={Colors.secondary}
+                  style={general_styles.progressBar}
+                />
+                {/* Boîtes */}
+                <View style={general_styles.boxesContainer}>
+                  {topic.boxes.map((count, i) => (
+                    <View key={i} style={general_styles.box}>
+                      <Text style={general_styles.boxText}>{count}</Text>
+                    </View>
+                  ))}
+                </View>
+                {/* CTA */}
                 <TouchableOpacity
                   onPress={() =>
                     router.push({
@@ -250,16 +254,22 @@ export default function Lernen() {
                     alignItems: "center",
                   }}
                 >
-                  <Text style={general_styles.startButtonText}>
-                    Start Flashcards
-                  </Text>
+                  <LinearGradient
+                    colors={["#e7f5ecff", "#CEF2DB"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={general_styles.startButton} // garder le style existant
+                  >
+                    <Text style={general_styles.startButtonText}>
+                      Start Flashcards
+                    </Text>
+                  </LinearGradient>
                 </TouchableOpacity>
-              </LinearGradient>
-            </View>
-          ))
-        )}
-      </ScrollView>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      </View>
     </View>
-   </View>
   );
 }

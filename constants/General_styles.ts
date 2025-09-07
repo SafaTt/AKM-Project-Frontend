@@ -15,26 +15,36 @@ export const general_styles = StyleSheet.create({
   rowView: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: height * 0.015,
-    marginLeft: width * 0.015,
-    marginRight: width * 0.015,
+    marginTop: height * 0.02,
+    marginLeft: width * 0.02,
+    marginRight: width * 0.02,
     alignItems: "center",
     zIndex: 10,
-    backgroundColor: Colors.primary,
-    padding: 10,
+    padding: 15,
     borderRadius: width * 0.15,
+
+    // Shadow iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+
+    // Shadow Android
+    elevation: 5,
+
+    // Optionnel : background pour que le shadow soit visible
+    backgroundColor: "#fff",
   },
+
   logo: {
     maxWidth: 100,
     maxHeight: 220,
     alignSelf: "center",
-    // Légère ombre pour faire ressortir le noir & blanc + tache verte
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    // Android
-    elevation: 4,
+  },
+  logoSplash: {
+    maxWidth: width * 0.5,
+    maxHeight: 220,
+    alignSelf: "center",
   },
   title: {
     fontSize: 22,
@@ -51,7 +61,7 @@ export const general_styles = StyleSheet.create({
     height: 40,
   },
   brandTitle: {
-    color: "#fff",
+    color: Colors.primary,
     fontSize: 18,
     alignSelf: "center",
     fontWeight: "500",
@@ -69,7 +79,8 @@ export const general_styles = StyleSheet.create({
     elevation: 2,
     marginLeft: 10,
     marginRight: 10,
-    marginTop: 16,
+    marginTop: height * 0.01,
+    marginBottom: height * 0.01,
   },
   topicTitle: {
     fontSize: 16,
@@ -128,7 +139,7 @@ export const general_styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: height * 0.02,
+    marginTop: height * 0.005,
     marginBottom: height * 0.02,
   },
   iconImg: {
@@ -176,12 +187,14 @@ export const general_styles = StyleSheet.create({
   barView: {
     margin: 6,
     padding: 6,
+    // paddingTop: 24, // 🔹 espace pour les labels
     backgroundColor: "#fff",
     borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 4, // Android
+    elevation: 4,
+    height: 250, // 🔹 définir une hauteur suffisante
   },
 });

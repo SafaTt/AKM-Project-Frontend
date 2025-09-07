@@ -68,10 +68,9 @@ export default function ÜbungsprüfungIntro() {
 
   const clearAllExams = async () => {
     try {
-      await AsyncStorage.removeItem("currentExam");
-      await AsyncStorage.removeItem("allExams");
+      await AsyncStorage.clear();
+      console.log("Tout le AsyncStorage a été vidé !");
       setExams([]);
-      console.log("Tous les examens ont été supprimés !");
     } catch (err) {
       console.error("Erreur lors de la suppression des examens :", err);
     }
@@ -121,19 +120,25 @@ export default function ÜbungsprüfungIntro() {
               source={require("@/assets/images/examen.png")}
               style={general_styles.iconImg}
             />
-            <LinearGradient
-              colors={["#e7f5ecff", "#CEF2DB"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[
-                general_styles.startButton,
-                { width: "90%", marginTop: 10 },
-              ]}
+            <TouchableOpacity
+              onPress={startExam}
+              activeOpacity={0.8}
+              style={general_styles.startButton}
             >
-              <TouchableOpacity onPress={startExam}>
-                <Text style={general_styles.startButtonText}>Start Exam</Text>
-              </TouchableOpacity>
-            </LinearGradient>
+              <LinearGradient
+                colors={["#e7f5ecff", "#CEF2DB"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  general_styles.startButton,
+                  { width: "90%", marginTop: 10 },
+                ]}
+              >
+                <Text style={general_styles.startButtonText}>
+                  Prüfung starten
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </>
         ) : (
           <>

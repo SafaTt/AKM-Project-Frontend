@@ -56,7 +56,7 @@ export default function ProgressDisplay({ progress }: ProgressDisplayProps) {
         />
         <Text style={styles.percentage}>{displayProgress}%</Text>
       </View>
-      <Text style={styles.label}>GESAMTFORTSCHRITT</Text>
+      {/* <Text style={styles.label}>GESAMTFORTSCHRITT</Text> */}
     </View>
   );
 }
@@ -66,7 +66,6 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     marginTop: width * 0.05,
     alignItems: "center",
-    flexDirection: "column",
   },
   chartContainer: {
     justifyContent: "center",

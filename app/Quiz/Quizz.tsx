@@ -46,7 +46,7 @@ const Quizz: React.FC = () => {
   const [showFalsch, setShowFalsch] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
-
+  const [isFinished, setIsFinished] = useState(false);
   // Animated value pour la barre
   const animatedProgress = useRef(new Animated.Value(0)).current;
 
@@ -166,13 +166,21 @@ const Quizz: React.FC = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      router.replace("../aps/(tabs)/Lernen");
+      setIsFinished(true);
+      setTimeout(() => {
+        router.back();
+      }, 2000);
     }
   };
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View
+        style={[
+          styles.container,
+          { alignItems: "center", justifyContent: "center" },
+        ]}
+      >
         <StatusBar barStyle="light-content" backgroundColor="black" />
         <ActivityIndicator size="large" color={Colors.secondary} />
         <Text>Lädt Quiz...</Text>
@@ -185,6 +193,41 @@ const Quizz: React.FC = () => {
       <View style={styles.center}>
         <StatusBar barStyle="light-content" backgroundColor="black" />
         <Text>Keine Fragen gefunden.</Text>
+      </View>
+    );
+  }
+
+  if (isFinished) {
+    return (
+      <View style={[styles.container, { alignItems: "flex-start" }]}>
+        <StatusBar barStyle="light-content" backgroundColor="black" />
+        <View style={general_styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={28} color="black" />
+          </TouchableOpacity>
+
+          {/* Barre de progression custom animée */}
+          <View style={styles.progressWrapper}>
+            <Animated.View
+              style={[
+                styles.progressFill,
+                {
+                  // animate la largeur en pourcentage
+                  width: animatedProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0%", "100%"],
+                  }),
+                },
+              ]}
+            />
+          </View>
+        </View>
+        <Text style={[general_styles.title, { color: "black" }]}>
+          Sie sind fertig!
+        </Text>
+        <Text style={{ fontSize: 16, marginTop: 10 }}>
+          🎉 Sie haben alle Fragen zum Thema beantwortet.
+        </Text>
       </View>
     );
   }
@@ -215,12 +258,11 @@ const Quizz: React.FC = () => {
           />
         </View>
       </View>
-
-      <Text style={styles.question}>{current.Frage}</Text>
-
       {current["Bild URL"] ? (
         <Image source={{ uri: current["Bild URL"] }} style={styles.image} />
       ) : null}
+
+      <Text style={styles.question}>{current.Frage}</Text>
 
       {["A", "B", "C"].map((opt) => {
         const isSelected = selectedOption === opt;
