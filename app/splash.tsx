@@ -36,7 +36,7 @@ export default function SplashScreen() {
     ]).start(() => {
       // Attente courte après l’animation (~500ms) → total ~2s max
       const timeout = setTimeout(() => {
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/Home");
       }, 500);
 
       // Pas besoin de lancer une boucle infinie, car on quitte rapidement

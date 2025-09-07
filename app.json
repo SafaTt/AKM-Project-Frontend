@@ -20,8 +20,14 @@
         "foregroundImage": "./assets/images/generals/logo.png",
         "backgroundColor": "#ffffff"
       },
+
       "edgeToEdge": true,
-      "package": "com.safatouil.AKMApp"
+      "package": "com.safatouil.AKMApp",
+      "navigationBar": {
+        "visible": true,
+        "barStyle": "dark-content",
+        "backgroundColor": "white"
+      }
     },
     "web": {
       "bundler": "metro",
