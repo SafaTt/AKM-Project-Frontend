@@ -1,4 +1,3 @@
-import PrimaryCTA from "@/components/PrimaryCTA";
 import ProgressDisplay from "@/components/ProgressDisplay";
 import SecondaryCTAs from "@/components/SecondaryCTAs";
 import { general_styles } from "@/constants/General_styles";
@@ -86,17 +85,12 @@ export default function HomeScreen() {
           <ProgressDisplay progress={overallProgress} />
         </View>
 
-        {/* CTA principal */}
-        <PrimaryCTA
-          title="Übungsprüfung"
-          onPress={() => console.log("Übungsprüfung")}
-        />
-
         {/* CTA secondaires */}
         <SecondaryCTAs
           onPressKategorien={() => router.push("/Lernen")}
           onPressStatistik={() => router.push("/Statistik")}
           onPressEinstellungen={() => router.push("/ImprintScreen")}
+          onPressUbungsprufung={() => router.push("/Quiz/ExamQuizz")}
         />
       </View>
     </View>

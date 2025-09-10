@@ -99,32 +99,32 @@ const ResultModal: React.FC<ResultModalProps> = ({
           <ScrollView style={{ maxHeight: 250, width: "100%" }}>
             {exam.questions.map((q, index) => (
               <View key={index} style={styles.questionRow}>
-                <Text style={styles.questionText}>
-                  {index + 1}. {q.Frage}
-                </Text>
-                <Text style={styles.answerText}>
-                  Deine Antwort:{" "}
-                  <Text
-                    style={{
-                      color:
-                        q.userAnswer === q["Richtige Antwort"]
-                          ? "green"
-                          : "red",
-                    }}
-                  >
-                    {q.userAnswer || "-"}
-                  </Text>
-                </Text>
-                <Text style={styles.answerText}>
-                  Richtige Antwort: {q["Richtige Antwort"]}
-                </Text>
+               <Text style={styles.questionText}>
+  {index + 1}. {q.Frage}{" "}
+  {q.userAnswer !== q["Richtige Antwort"] && (
+    <Text style={{ color: Colors.falsch }}>✗ Falsch</Text>
+  )}
+</Text>
+<Text style={styles.answerText}>
+  Deine Antwort:{" "}
+  <Text style={{ color: Colors.falsch }}>
+    {q.userAnswer || "-"}
+  </Text>
+</Text>
+<Text style={styles.answerText}>
+  Richtige Antwort:{" "}
+  <Text style={{ color: Colors.secondary }}>
+    {q["Richtige Antwort"]}
+  </Text>
+</Text>
+
               </View>
             ))}
           </ScrollView>
 
           {/* Afficher le bouton seulement si au moins une question est fausse */}
           {exam.questions.some(
-            (q) => q.userAnswer !== q["Richtige Antwort"]
+            (q) => q.userAnswer && q.userAnswer !== q["Richtige Antwort"]
           ) && (
             <TouchableOpacity
               style={[

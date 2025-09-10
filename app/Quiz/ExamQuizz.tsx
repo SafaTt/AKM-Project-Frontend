@@ -11,6 +11,7 @@ import * as Papa from "papaparse";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
+  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -94,6 +95,7 @@ export default function ExamQuizz() {
   const [limitMistakesVisible, setLimitMistakesVisible] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [currentExam, setCurrentExam] = useState<StoredExam | null>(null);
+  const [toLeaveExam, setToLeaveExam] = useState(false);
 
   // Timer
   useEffect(() => {
@@ -115,14 +117,6 @@ export default function ExamQuizz() {
       handleFinishExam(); // async hors du setter
     }
   }, [secondsLeft, questions]);
-
-  // Fin si 15 fautes
-  useEffect(() => {
-    if (mistakesOverall === 15) {
-      handleFinishExam();
-      setLimitMistakesVisible(true);
-    }
-  }, [mistakesOverall]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -185,15 +179,6 @@ export default function ExamQuizz() {
 
     const hasTopicLimit = Object.values(mistakesPerTopic).some((m) => m >= 6);
     if (!isCorrect && hasTopicLimit) {
-      setLimitMistakesVisible(true);
-      setTimeout(() => {
-        setLimitMistakesVisible(false);
-        handleFinishExam();
-      }, 2500);
-      return;
-    }
-
-    if (!isCorrect && mistakesOverall + 1 >= 15) {
       setLimitMistakesVisible(true);
       setTimeout(() => {
         setLimitMistakesVisible(false);
@@ -310,8 +295,11 @@ export default function ExamQuizz() {
     }
   };
 
+  const handleContinueExam = async () => {
+    setToLeaveExam(false);
+    setIsPaused(false);
+  };
   const current = questions[currentIndex];
-
   if (loading) {
     return (
       <View
@@ -338,7 +326,11 @@ export default function ExamQuizz() {
       <StatusBar barStyle="light-content" backgroundColor="black" />
       {/* Header */}
       <View style={general_styles.header}>
-        <TouchableOpacity onPress={() => handleFinishExam()}>
+        <TouchableOpacity
+          onPress={() => {
+            setIsPaused(true), setToLeaveExam(true);
+          }}
+        >
           <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
       </View>
@@ -362,7 +354,7 @@ export default function ExamQuizz() {
       </View>
 
       {/* Mistakes */}
-      <Text style={styles.falshText}>Fehler: {mistakesOverall} / 15</Text>
+      {/* <Text style={styles.falshText}>Fehler: {mistakesOverall} / 15</Text> */}
 
       {/* Question */}
       <View
@@ -388,9 +380,6 @@ export default function ExamQuizz() {
           if (selectedOption === opt && !showResult) {
             borderColor = "black"; // 👈 étape 1
           }
-          if (showResult && selectedOption === opt) {
-            borderColor = isAnswerCorrect ? Colors.secondary : Colors.falsch; // 👈 étape 2
-          }
 
           return (
             <TouchableOpacity
@@ -411,13 +400,7 @@ export default function ExamQuizz() {
           style={[
             styles.nextBtn,
             {
-              backgroundColor: !selectedOption
-                ? "#ccc"
-                : !showResult
-                ? "black" // 👈 étape 1
-                : isAnswerCorrect
-                ? Colors.secondary
-                : Colors.falsch, // 👈 étape 2
+              backgroundColor: !selectedOption ? "#ccc" : "black",
             },
           ]}
           onPress={handleNext}
@@ -429,13 +412,6 @@ export default function ExamQuizz() {
         </TouchableOpacity>
       </View>
 
-      {/* <TimeoutModal
-        visible={timeoutVisible}
-        correctAnswer=""
-        onClose={() => {
-          handleFinishExam();
-        }}
-      /> */}
       <LimitMistakesModal
         visible={limitMistakesVisible}
         onClose={() => {
@@ -451,6 +427,48 @@ export default function ExamQuizz() {
           setTimeout(() => router.back(), 200);
         }}
       />
+
+      {/* Modal quitter examen */}
+      <Modal
+        visible={toLeaveExam}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setToLeaveExam(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>ÜBUNGSPRÜFUNG ABBRECHEN</Text>
+            <Text style={styles.modalMessage}>
+              Alle unbeantworteten Fragen werden als falsch markiert.
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.modalBtn,
+                  { borderColor: Colors.secondary, borderWidth: 1 },
+                ]}
+                onPress={handleFinishExam}
+              >
+                <Text
+                  style={[styles.modalBtnText, { color: Colors.secondary }]}
+                >
+                  Übungsprüfung Beenden
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: Colors.secondary }]}
+                onPress={handleContinueExam}
+              >
+                <Text style={styles.modalBtnText}>
+                  Übungsprüfung Fortsetzen
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -503,5 +521,48 @@ const styles = StyleSheet.create({
     height: 180,
     resizeMode: "contain",
     marginBottom: 16,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalBtn: {
+    flex: 1,
+    marginHorizontal: 5,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    padding: 5,
+  },
+  modalBtnText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "center",
   },
 });

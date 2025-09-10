@@ -17,6 +17,7 @@ interface SecondaryCTAsProps {
   onPressKategorien?: () => void;
   onPressStatistik?: () => void;
   onPressEinstellungen?: () => void;
+  onPressUbungsprufung?: () => void;
 }
 
 const SecondaryButton = ({
@@ -76,11 +77,13 @@ export default function SecondaryCTAs({
   onPressKategorien,
   onPressStatistik,
   onPressEinstellungen,
+  onPressUbungsprufung,
 }: SecondaryCTAsProps) {
   return (
     <View style={styles.gridContainer}>
+    
       <SecondaryButton
-        title="Kategorien"
+        title="Lernen"
         icon={<Feather name="list" size={28} color={Colors.primary} />}
         onPress={onPressKategorien}
       />
@@ -92,16 +95,16 @@ export default function SecondaryCTAs({
         onPress={onPressStatistik}
       />
       <SecondaryButton
-        title="Einstellungen"
+        title="Impressum"
         icon={
           <Ionicons name="settings-sharp" size={28} color={Colors.primary} />
         }
         onPress={onPressEinstellungen}
       />
-      <SecondaryButton
-        title="Bonus"
-        icon={<Feather name="star" size={28} color={Colors.primary} />}
-        onPress={() => console.log("Bonus")}
+        <SecondaryButton
+        title="Übungsprüfung"
+  icon={<Ionicons name="document-text-outline" size={28} color={Colors.primary} />}
+        onPress={onPressUbungsprufung}
       />
     </View>
   );
