@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import * as Papa from "papaparse";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -57,10 +57,11 @@ export default function Lernen() {
       title: string;
       questions: number;
       progress: number;
-      boxes: number[];
+      boxes: number[]; // stack 1 → stack 5
       url: any;
     }[]
   >([]);
+  const [selectedStack, setSelectedStack] = useState<number | null>(null); // ✅ stack filtré
   const router = useRouter();
 
   useFocusEffect(
@@ -86,15 +87,17 @@ export default function Lernen() {
                     const validRows = parsed.data.filter(
                       (row) => row.Frage?.trim().length > 0
                     );
+
                     const key = `quiz_${file.title}`;
                     const stored = await AsyncStorage.getItem(key);
                     const answers = stored ? JSON.parse(stored) : [];
+
                     const progress = answers.length / validRows.length;
 
                     let boxes = [0, 0, 0, 0, 0];
                     answers.forEach((a: any) => {
-                      if (a.isCorrect) boxes[1] += 1;
-                      else boxes[0] += 1;
+                      const stack = a.stack || 1;
+                      boxes[stack - 1] += 1;
                     });
 
                     resolve({
@@ -122,70 +125,13 @@ export default function Lernen() {
     }, [])
   );
 
-  //chargé les donnée du localstorage
-  useEffect(() => {
-    const fetchCSVAndProgress = async () => {
-      try {
-        const promises = csvFiles.map(async (file) => {
-          const response = await fetch(file.url);
-          const text = await response.text();
-
-          return new Promise<{
-            title: string;
-            questions: number;
-            progress: number;
-            boxes: number[];
-            url: any;
-          }>(async (resolve) => {
-            Papa.parse<QuestionRow>(text, {
-              header: true,
-              skipEmptyLines: true,
-              complete: async (parsed) => {
-                const validRows = parsed.data.filter(
-                  (row) => row.Frage && row.Frage.trim().length > 0
-                );
-
-                // 🔹 Charger réponses utilisateur depuis AsyncStorage
-                const key = `quiz_${file.title}`;
-                const stored = await AsyncStorage.getItem(key);
-                const answers = stored ? JSON.parse(stored) : [];
-
-                // 🔹 Calcul progression
-                const progress = answers.length / validRows.length;
-
-                // 🔹 Calcul des boxes (ici très simplifié : Box1 = total - réponses correctes, Box2 = réponses correctes)
-                let boxes = [0, 0, 0, 0, 0];
-                answers.forEach((a: any) => {
-                  if (a.isCorrect) {
-                    boxes[1] += 1; // en vrai → avancer dans la box suivante
-                  } else {
-                    boxes[0] += 1;
-                  }
-                });
-
-                resolve({
-                  title: file.title,
-                  questions: validRows.length,
-                  progress,
-                  boxes,
-                  url: file.url,
-                });
-              },
-            });
-          });
-        });
-
-        const results = await Promise.all(promises);
-        setTopics(results);
-      } catch (err) {
-        console.error("Erreur CSV:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCSVAndProgress();
-  }, []);
+  const handleStackSelect = (stackIndex: number) => {
+    if (selectedStack === stackIndex + 1) {
+      setSelectedStack(null); // toggle off
+    } else {
+      setSelectedStack(stackIndex + 1);
+    }
+  };
 
   return (
     <View style={general_styles.container}>
@@ -220,53 +166,89 @@ export default function Lernen() {
               </Text>
             </View>
           ) : (
-            topics.map((topic, index) => (
-              <View key={index} style={general_styles.topicCard}>
-                <Text style={general_styles.topicTitle}>{topic.title}</Text>
-                <Text style={general_styles.questionCount}>
-                  {topic.questions} Fragen
-                </Text>
-                {/* Barre de progression */}
-                <ProgressBar
-                  progress={topic.progress}
-                  color={Colors.secondary}
-                  style={general_styles.progressBar}
-                />
-                {/* Boîtes */}
-                <View style={general_styles.boxesContainer}>
-                  {topic.boxes.map((count, i) => (
-                    <View key={i} style={general_styles.box}>
-                      <Text style={general_styles.boxText}>{count}</Text>
-                    </View>
-                  ))}
-                </View>
-                {/* CTA */}
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "../Quiz/Quizz",
-                      params: { topicName: topic.title, topicUrl: topic.url },
-                    })
-                  }
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <LinearGradient
-                    colors={["#e7f5ecff", "#CEF2DB"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={general_styles.startButton} // garder le style existant
+            topics.map((topic, index) => {
+              // Couleurs pour chaque stack
+              const stackColors = [
+                "#D32F2F77",
+                "#fa8333aa",
+                "#ffea4d77",
+                "#a6ff4d77",
+                "#049c4477",
+              ];
+
+              // 🔹 Si un stack est sélectionné, on filtre la progression pour ce stack
+              const filteredBoxes = selectedStack
+                ? topic.boxes.map((count, i) =>
+                    i === selectedStack - 1 ? count : 0
+                  )
+                : topic.boxes;
+
+              return (
+                <View key={index} style={general_styles.topicCard}>
+                  <Text style={general_styles.topicTitle}>{topic.title}</Text>
+                  <Text style={general_styles.questionCount}>
+                    {topic.questions} Fragen
+                  </Text>
+                  {/* Barre de progression */}
+                  <ProgressBar
+                    progress={topic.progress}
+                    color={Colors.secondary}
+                    style={general_styles.progressBar}
+                  />
+                  {/* Boîtes / stacks */}
+                  <View style={general_styles.boxesContainer}>
+                    {filteredBoxes.map((count, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={[
+                          general_styles.box,
+                          {
+                            backgroundColor: stackColors[i],
+                            borderWidth: selectedStack === i + 1 ? 2 : 0, // met en évidence
+                            borderColor: Colors.secondary,
+                            opacity: count === 0 ? 0.5 : 1, // visuel pour stack vide
+                          },
+                        ]}
+                        onPress={() => count > 0 && handleStackSelect(i)} // ✅ non cliquable si 0
+                        disabled={count === 0} // désactive le clic si pas de questions
+                      >
+                        <Text style={general_styles.boxText}>{count}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* CTA */}
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "../Quiz/Quizz",
+                        params: {
+                          topicName: topic.title,
+                          topicUrl: topic.url,
+                          stack: selectedStack, // passe le stack sélectionné
+                        },
+                      })
+                    }
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
                   >
-                    <Text style={general_styles.startButtonText}>
-                      Start Flashcards
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            ))
+                    <LinearGradient
+                      colors={["#e7f5ecff", "#CEF2DB"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={general_styles.startButton}
+                    >
+                      <Text style={general_styles.startButtonText}>
+                        Start Flashcards
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              );
+            })
           )}
         </ScrollView>
       </View>

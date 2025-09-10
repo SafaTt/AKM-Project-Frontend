@@ -36,6 +36,7 @@ const Quizz: React.FC = () => {
   const params = useLocalSearchParams();
   const topicName = (params.topicName as string) || "unknown_topic";
   const topicUrl = (params.topicUrl as string) || "";
+  const selectedStack = params.stack ? Number(params.stack) : null; // 🔹 stack sélectionné ou null
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,9 +48,10 @@ const Quizz: React.FC = () => {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [isFinished, setIsFinished] = useState(false);
-  // Animated value pour la barre
+
   const animatedProgress = useRef(new Animated.Value(0)).current;
 
+  // 🔹 Charger questions + filtrer selon le stack sélectionné
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -59,11 +61,31 @@ const Quizz: React.FC = () => {
         Papa.parse<Question>(text, {
           header: true,
           skipEmptyLines: true,
-          complete: (parsed) => {
-            const valid = (parsed.data || []).filter(
+          complete: async (parsed) => {
+            let valid = (parsed.data || []).filter(
               (row) => row.Frage && row.Frage.trim() !== ""
             );
+
+            const key = `quiz_${topicName}`;
+            const stored = await AsyncStorage.getItem(key);
+            const answers = stored ? JSON.parse(stored) : [];
+
+            if (selectedStack) {
+              // 🔹 filtrer questions par stack
+              valid = valid.filter((q) => {
+                const prev = answers.find((a: any) => a.question === q.Frage);
+                if (prev) return prev.stack === selectedStack;
+                return selectedStack === 1; // nouvelles questions → stack 1
+              });
+            }
+
             setQuestions(valid);
+
+            // 🔹 initialiser compteur answeredCount pour le stack sélectionné
+            const count = selectedStack
+              ? answers.filter((a: any) => a.stack === selectedStack).length
+              : answers.length;
+            setAnsweredCount(count);
           },
         });
       } catch (error) {
@@ -75,59 +97,45 @@ const Quizz: React.FC = () => {
 
     if (topicUrl && topicName) fetchQuestions();
     else setLoading(false);
-  }, [topicUrl, topicName]);
+  }, [topicUrl, topicName, selectedStack]);
 
-  // Anime la barre quand answeredCount change
+  // 🔹 Anime la barre quand answeredCount change
   useEffect(() => {
     const target = questions.length ? answeredCount / questions.length : 0;
     Animated.timing(animatedProgress, {
       toValue: target,
-      duration: 500, // durée de l'animation (ajuste si tu veux plus lent/rapide)
+      duration: 500,
       useNativeDriver: false,
     }).start();
   }, [answeredCount, questions.length, animatedProgress]);
 
-  // load previoux answer
   const loadPreviousAnswer = async (index: number) => {
     const key = `quiz_${topicName}`;
     const stored = await AsyncStorage.getItem(key);
     const answers = stored ? JSON.parse(stored) : [];
-
     const prevQuestion = questions[index];
     if (!prevQuestion) return;
-
     const prevAnswer = answers.find(
       (a: any) => a.question === prevQuestion.Frage
     );
-
-    if (prevAnswer) {
-      const answer = prevAnswer.userAnswer || prevAnswer.selected || null;
-      setSelectedOption(answer);
-    } else {
-      setSelectedOption(null);
-    }
+    setSelectedOption(prevAnswer?.userAnswer || null);
   };
 
   const handlePrev = async () => {
     if (currentIndex > 0) {
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
-      await loadPreviousAnswer(newIndex); // ✅ recharge réponse SEULEMENT sur Zurück
+      await loadPreviousAnswer(newIndex);
     }
   };
 
   const handleAnswer = async (userAnswer: string, rightAnswer: string) => {
     setCorrectAnswer(rightAnswer);
+    const correct = userAnswer === rightAnswer;
+    setIsAnswerCorrect(correct);
+    setShowRichtig(correct);
+    setShowFalsch(!correct);
 
-    if (userAnswer === rightAnswer) {
-      setIsAnswerCorrect(true);
-      setShowRichtig(true);
-    } else {
-      setIsAnswerCorrect(false);
-      setShowFalsch(true);
-    }
-
-    // Sauvegarde réponse + passage automatique à la question suivante après 2 sec
     await saveAnswer(userAnswer, rightAnswer);
 
     setTimeout(() => {
@@ -138,27 +146,46 @@ const Quizz: React.FC = () => {
     }, 1000);
   };
 
+  // 🔹 Gestion stack Leitner
   const saveAnswer = async (userAnswer: string, rightAnswer: string) => {
     const key = `quiz_${topicName}`;
     const stored = await AsyncStorage.getItem(key);
     let answers = stored ? JSON.parse(stored) : [];
 
     const currentQuestion = questions[currentIndex];
+    const prevAnswer = answers.find(
+      (a: any) => a.question === currentQuestion.Frage
+    );
 
-    const answerData = {
-      themeTitle: topicName,
-      themeUrl: topicUrl, // récupéré depuis le parent
-      question: currentQuestion.Frage,
-      userAnswer,
-      isCorrect: userAnswer === rightAnswer,
-    };
+    const isCorrect = userAnswer === rightAnswer;
+    let newStack = 1;
 
-    answers.push(answerData);
+    if (prevAnswer) {
+      newStack = isCorrect
+        ? Math.min((prevAnswer.stack || 1) + 1, 5)
+        : Math.max((prevAnswer.stack || 1) - 1, 1);
+      prevAnswer.userAnswer = userAnswer;
+      prevAnswer.isCorrect = isCorrect;
+      prevAnswer.stack = newStack;
+    } else {
+      newStack = isCorrect ? 2 : 1;
+      answers.push({
+        themeTitle: topicName,
+        themeUrl: topicUrl,
+        question: currentQuestion.Frage,
+        userAnswer,
+        isCorrect,
+        stack: newStack,
+      });
+    }
 
     await AsyncStorage.setItem(key, JSON.stringify(answers));
 
-    // ✅ Incrémenter la barre
-    setAnsweredCount((prev) => prev + 1);
+    // 🔹 Mise à jour compteur pour stack sélectionné
+    const count = selectedStack
+      ? answers.filter((a: any) => a.stack === selectedStack).length
+      : answers.length;
+    setAnsweredCount(count);
   };
 
   const handleNext = () => {
@@ -167,9 +194,7 @@ const Quizz: React.FC = () => {
       setCurrentIndex(currentIndex + 1);
     } else {
       setIsFinished(true);
-      setTimeout(() => {
-        router.back();
-      }, 2000);
+      setTimeout(() => router.back(), 2000);
     }
   };
 
@@ -206,13 +231,11 @@ const Quizz: React.FC = () => {
             <Ionicons name="arrow-back" size={28} color="black" />
           </TouchableOpacity>
 
-          {/* Barre de progression custom animée */}
           <View style={styles.progressWrapper}>
             <Animated.View
               style={[
                 styles.progressFill,
                 {
-                  // animate la largeur en pourcentage
                   width: animatedProgress.interpolate({
                     inputRange: [0, 1],
                     outputRange: ["0%", "100%"],
@@ -237,18 +260,18 @@ const Quizz: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="black" />
+
+      {/* 🔹 Header avec bouton retour + barre de progression */}
       <View style={general_styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/Lernen")}>
           <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
 
-        {/* Barre de progression custom animée */}
         <View style={styles.progressWrapper}>
           <Animated.View
             style={[
               styles.progressFill,
               {
-                // animate la largeur en pourcentage
                 width: animatedProgress.interpolate({
                   inputRange: [0, 1],
                   outputRange: ["0%", "100%"],
@@ -258,9 +281,10 @@ const Quizz: React.FC = () => {
           />
         </View>
       </View>
-      {current["Bild URL"] ? (
+
+      {current["Bild URL"] && (
         <Image source={{ uri: current["Bild URL"] }} style={styles.image} />
-      ) : null}
+      )}
 
       <Text style={styles.question}>{current.Frage}</Text>
 
@@ -268,22 +292,15 @@ const Quizz: React.FC = () => {
         const isSelected = selectedOption === opt;
         let borderColor = "#ccc";
 
-        if (isSelected) {
-          if (isAnswerCorrect === true && opt === correctAnswer) {
-            borderColor = Colors.secondary;
-          } else if (isAnswerCorrect === false && opt === selectedOption) {
-            borderColor = Colors.falsch;
-          }
+        if (isSelected && isAnswerCorrect !== null) {
+          borderColor = isAnswerCorrect ? Colors.secondary : Colors.falsch;
         }
 
         return (
           <TouchableOpacity
             key={opt}
             style={[styles.option, { borderColor }]}
-            onPress={() => {
-              setSelectedOption(opt);
-              handleAnswer(opt, current["Richtige Antwort"]);
-            }}
+            onPress={() => handleAnswer(opt, current["Richtige Antwort"])}
           >
             <Text style={styles.optionText}>
               {opt}: {current[`Antwort ${opt}` as keyof Question]}
@@ -291,15 +308,16 @@ const Quizz: React.FC = () => {
           </TouchableOpacity>
         );
       })}
+
       <TouchableOpacity
         style={[
           styles.nextBtn,
           {
             backgroundColor:
-              selectedOption && isAnswerCorrect === false
-                ? Colors.falsch
-                : selectedOption && isAnswerCorrect === true
-                ? Colors.secondary
+              selectedOption && isAnswerCorrect !== null
+                ? isAnswerCorrect
+                  ? Colors.secondary
+                  : Colors.falsch
                 : "#ccc",
           },
         ]}
