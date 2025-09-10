@@ -314,7 +314,7 @@ export default function ExamQuizz() {
           source={require("@/assets/lottie/loading.json")}
           autoPlay
           loop={true}
-          style={{ width: 150, height: 150, marginRight: width * 0.1 }}
+          style={{ width: 200, height: 200, marginRight: width * 0.1 }}
         />
         <Text>Fragen werden geladen...</Text>
       </View>
@@ -325,7 +325,7 @@ export default function ExamQuizz() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="black" />
       {/* Header */}
-      <View style={general_styles.header}>
+      <View style={[general_styles.header, { marginTop: "5%" }]}>
         <TouchableOpacity
           onPress={() => {
             setIsPaused(true), setToLeaveExam(true);
@@ -448,7 +448,10 @@ export default function ExamQuizz() {
                   styles.modalBtn,
                   { borderColor: Colors.secondary, borderWidth: 1 },
                 ]}
-                onPress={handleFinishExam}
+                onPress={() => {
+                  setToLeaveExam(false);
+                  handleFinishExam();
+                }}
               >
                 <Text
                   style={[styles.modalBtnText, { color: Colors.secondary }]}

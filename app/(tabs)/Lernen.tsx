@@ -152,7 +152,7 @@ export default function Lernen() {
                 source={require("@/assets/lottie/loading.json")}
                 autoPlay
                 loop={true}
-                style={{ width: 150, height: 150, marginRight: width * 0.1 }}
+                style={{ width: 200, height: 200, marginRight: width * 0.1 }}
               />
               <Text
                 style={{

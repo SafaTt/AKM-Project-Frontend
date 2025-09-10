@@ -148,7 +148,7 @@ export default function ÜbungsprüfungIntro() {
                 alignSelf: "flex-end",
                 padding: 10,
                 marginRight: width * 0.01,
-                marginTop: "2%",
+                marginTop: "5%",
               }}
               onPress={startExam}
             >
@@ -158,7 +158,7 @@ export default function ÜbungsprüfungIntro() {
                   { textDecorationLine: "underline" },
                 ]}
               >
-                Neuen Exam starten
+                Neue Übungsprüfung starten
               </Text>
               <AntDesign
                 name="pluscircleo"

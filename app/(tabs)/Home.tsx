@@ -73,7 +73,7 @@ export default function HomeScreen() {
           style={general_styles.brandLogo}
         />
         <Text style={general_styles.brandTitle}>Fischerprüfung Bayern</Text>
-        <TouchableOpacity onPress={() => router.push("/ImprintScreen")}>
+        <TouchableOpacity onPress={() => router.push("/SettingsScreen")}>
           <Feather name="settings" size={22} color="black" />
         </TouchableOpacity>
       </View>

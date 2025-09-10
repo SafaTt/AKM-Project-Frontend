@@ -15,7 +15,7 @@ export const general_styles = StyleSheet.create({
   rowView: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: "8%",
+    marginTop: "9%",
     marginLeft: width * 0.02,
     marginRight: width * 0.02,
     alignItems: "center",

@@ -1,5 +1,10 @@
 import { Colors } from "@/constants/Colors";
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import {
+  Feather,
+  FontAwesome,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
@@ -81,7 +86,6 @@ export default function SecondaryCTAs({
 }: SecondaryCTAsProps) {
   return (
     <View style={styles.gridContainer}>
-    
       <SecondaryButton
         title="Lernen"
         icon={<Feather name="list" size={28} color={Colors.primary} />}
@@ -96,14 +100,18 @@ export default function SecondaryCTAs({
       />
       <SecondaryButton
         title="Impressum"
-        icon={
-          <Ionicons name="settings-sharp" size={28} color={Colors.primary} />
-        }
+        icon={<FontAwesome name="balance-scale" size={24} color="black" />}
         onPress={onPressEinstellungen}
       />
-        <SecondaryButton
+      <SecondaryButton
         title="Übungsprüfung"
-  icon={<Ionicons name="document-text-outline" size={28} color={Colors.primary} />}
+        icon={
+          <Ionicons
+            name="document-text-outline"
+            size={28}
+            color={Colors.primary}
+          />
+        }
         onPress={onPressUbungsprufung}
       />
     </View>
