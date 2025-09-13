@@ -169,24 +169,6 @@ export default function ExamQuizz() {
       setMistakesOverall((prev) => prev + 1);
     }
 
-    // Vérification limite globale ou par thème si nécessaire
-    const mistakesPerTopic: Record<string, number> = {};
-    questions.forEach((q, i) => {
-      if (updated[i] && updated[i] !== q["Richtige Antwort"]) {
-        mistakesPerTopic[q.Thema] = (mistakesPerTopic[q.Thema] || 0) + 1;
-      }
-    });
-
-    const hasTopicLimit = Object.values(mistakesPerTopic).some((m) => m >= 6);
-    if (!isCorrect && hasTopicLimit) {
-      setLimitMistakesVisible(true);
-      setTimeout(() => {
-        setLimitMistakesVisible(false);
-        handleFinishExam();
-      }, 2500);
-      return;
-    }
-
     // Sauvegarde si ce n’est pas la dernière question
     if (currentIndex < questions.length - 1) {
       saveExam(updated, "encours");
@@ -435,17 +417,19 @@ export default function ExamQuizz() {
         animationType="fade"
         onRequestClose={() => setToLeaveExam(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>ÜBUNGSPRÜFUNG ABBRECHEN</Text>
-            <Text style={styles.modalMessage}>
+        <View style={general_styles.modalOverlay}>
+          <View style={general_styles.modalContent}>
+            <Text style={general_styles.modalTitle}>
+              ÜBUNGSPRÜFUNG ABBRECHEN
+            </Text>
+            <Text style={general_styles.modalMessage}>
               Alle unbeantworteten Fragen werden als falsch markiert.
             </Text>
 
-            <View style={styles.modalButtons}>
+            <View style={general_styles.modalButtons}>
               <TouchableOpacity
                 style={[
-                  styles.modalBtn,
+                  general_styles.modalBtn,
                   { borderColor: Colors.secondary, borderWidth: 1 },
                 ]}
                 onPress={() => {
@@ -454,17 +438,23 @@ export default function ExamQuizz() {
                 }}
               >
                 <Text
-                  style={[styles.modalBtnText, { color: Colors.secondary }]}
+                  style={[
+                    general_styles.modalBtnText,
+                    { color: Colors.secondary },
+                  ]}
                 >
                   Übungsprüfung Beenden
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: Colors.secondary }]}
+                style={[
+                  general_styles.modalBtn,
+                  { backgroundColor: Colors.secondary },
+                ]}
                 onPress={handleContinueExam}
               >
-                <Text style={styles.modalBtnText}>
+                <Text style={general_styles.modalBtnText}>
                   Übungsprüfung Fortsetzen
                 </Text>
               </TouchableOpacity>
@@ -524,48 +514,5 @@ const styles = StyleSheet.create({
     height: 180,
     resizeMode: "contain",
     marginBottom: 16,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    width: "90%",
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  modalBtn: {
-    flex: 1,
-    marginHorizontal: 5,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    padding: 5,
-  },
-  modalBtnText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    textAlign: "center",
   },
 });

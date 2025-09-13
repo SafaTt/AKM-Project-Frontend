@@ -140,7 +140,7 @@ export const general_styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: "5%",
+    marginTop: "8%",
     marginBottom: height * 0.02,
   },
   iconImg: {
@@ -197,5 +197,48 @@ export const general_styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
     height: 250, // 🔹 définir une hauteur suffisante
+  },
+
+   modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalBtn: {
+    flex: 1,
+    marginHorizontal: 5,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    padding: 5,
+  },
+  modalBtnText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "center",
   },
 });

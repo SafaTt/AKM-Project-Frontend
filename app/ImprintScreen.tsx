@@ -130,6 +130,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    marginTop: height * 0.02,
+    height: height * 0.1,
+    justifyContent: "center",
   },
   title: {
     flex: 1,
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#eee",
     backgroundColor: "#fff",
-    // bottom: height*0.02
+    height: height * 0.2,
   },
   okButton: {
     backgroundColor: Colors.secondary,

@@ -1,7 +1,6 @@
 // app/components/PrimaryCTA.tsx
 import { Colors } from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import React from "react";
 import {
   Animated,
@@ -37,13 +36,10 @@ export default function PrimaryCTA({ title, onPress }: PrimaryCTAProps) {
     }).start();
   };
 
-  const startExam = () => {
-    router.push("../Quiz/ExamQuizz");
-  };
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
-        onPress={startExam}
+        onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
@@ -72,13 +68,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 25,
     elevation: 5,
-    marginTop: height * 0.05,
+    marginTop: height * 0.02,
   },
   gradient: {
     paddingVertical: 16,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
+    height: height * 0.12,
   },
   text: {
     color: Colors.primary,

@@ -59,9 +59,9 @@ export default function Lernen() {
       progress: number;
       boxes: number[]; // stack 1 → stack 5
       url: any;
+      selectedStack: number | null; // stack sélectionné pour ce thème
     }[]
   >([]);
-  const [selectedStack, setSelectedStack] = useState<number | null>(null); // ✅ stack filtré
   const router = useRouter();
 
   useFocusEffect(
@@ -79,6 +79,7 @@ export default function Lernen() {
                 progress: number;
                 boxes: number[];
                 url: any;
+                selectedStack: number | null;
               }>((resolve) => {
                 Papa.parse<QuestionRow>(text, {
                   header: true,
@@ -106,6 +107,7 @@ export default function Lernen() {
                       progress,
                       boxes,
                       url: file.url,
+                      selectedStack: null,
                     });
                   },
                 });
@@ -125,12 +127,19 @@ export default function Lernen() {
     }, [])
   );
 
-  const handleStackSelect = (stackIndex: number) => {
-    if (selectedStack === stackIndex + 1) {
-      setSelectedStack(null); // toggle off
-    } else {
-      setSelectedStack(stackIndex + 1);
-    }
+  // 🔹 Sélectionner un stack pour un thème spécifique
+  const handleStackSelect = (topicIndex: number, stackIndex: number) => {
+    setTopics((prev) =>
+      prev.map((t, i) =>
+        i === topicIndex
+          ? {
+              ...t,
+              selectedStack:
+                t.selectedStack === stackIndex + 1 ? null : stackIndex + 1,
+            }
+          : t
+      )
+    );
   };
 
   return (
@@ -151,7 +160,7 @@ export default function Lernen() {
               <LottieView
                 source={require("@/assets/lottie/loading.json")}
                 autoPlay
-                loop={true}
+                loop
                 style={{ width: 200, height: 200, marginRight: width * 0.1 }}
               />
               <Text
@@ -166,8 +175,7 @@ export default function Lernen() {
               </Text>
             </View>
           ) : (
-            topics.map((topic, index) => {
-              // Couleurs pour chaque stack
+            topics.map((topic, topicIndex) => {
               const stackColors = [
                 "#D32F2F77",
                 "#fa8333aa",
@@ -176,26 +184,24 @@ export default function Lernen() {
                 "#049c4477",
               ];
 
-              // 🔹 Si un stack est sélectionné, on filtre la progression pour ce stack
-              const filteredBoxes = selectedStack
+              const filteredBoxes = topic.selectedStack
                 ? topic.boxes.map((count, i) =>
-                    i === selectedStack - 1 ? count : 0
+                    i === topic.selectedStack! - 1 ? count : 0
                   )
                 : topic.boxes;
 
               return (
-                <View key={index} style={general_styles.topicCard}>
+                <View key={topicIndex} style={general_styles.topicCard}>
                   <Text style={general_styles.topicTitle}>{topic.title}</Text>
                   <Text style={general_styles.questionCount}>
                     {topic.questions} Fragen
                   </Text>
-                  {/* Barre de progression */}
                   <ProgressBar
                     progress={topic.progress}
                     color={Colors.secondary}
                     style={general_styles.progressBar}
                   />
-                  {/* Boîtes / stacks */}
+
                   <View style={general_styles.boxesContainer}>
                     {filteredBoxes.map((count, i) => (
                       <TouchableOpacity
@@ -204,20 +210,21 @@ export default function Lernen() {
                           general_styles.box,
                           {
                             backgroundColor: stackColors[i],
-                            borderWidth: selectedStack === i + 1 ? 2 : 0, // met en évidence
+                            borderWidth: topic.selectedStack === i + 1 ? 2 : 0,
                             borderColor: Colors.secondary,
-                            opacity: count === 0 ? 0.5 : 1, // visuel pour stack vide
+                            opacity: count === 0 ? 0.5 : 1,
                           },
                         ]}
-                        onPress={() => count > 0 && handleStackSelect(i)} // ✅ non cliquable si 0
-                        disabled={count === 0} // désactive le clic si pas de questions
+                        onPress={() =>
+                          count > 0 && handleStackSelect(topicIndex, i)
+                        }
+                        disabled={count === 0}
                       >
                         <Text style={general_styles.boxText}>{count}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
 
-                  {/* CTA */}
                   <TouchableOpacity
                     onPress={() =>
                       router.push({
@@ -225,7 +232,7 @@ export default function Lernen() {
                         params: {
                           topicName: topic.title,
                           topicUrl: topic.url,
-                          stack: selectedStack, // passe le stack sélectionné
+                          stack: topic.selectedStack || null,
                         },
                       })
                     }
@@ -242,7 +249,7 @@ export default function Lernen() {
                       style={general_styles.startButton}
                     >
                       <Text style={general_styles.startButtonText}>
-                        Start Flashcards
+                        Start Lernkarten
                       </Text>
                     </LinearGradient>
                   </TouchableOpacity>

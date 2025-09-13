@@ -86,11 +86,11 @@ export default function SecondaryCTAs({
 }: SecondaryCTAsProps) {
   return (
     <View style={styles.gridContainer}>
-      <SecondaryButton
+      {/* <SecondaryButton
         title="Lernen"
         icon={<Feather name="list" size={28} color={Colors.primary} />}
         onPress={onPressKategorien}
-      />
+      /> */}
       <SecondaryButton
         title="Statistik"
         icon={
@@ -103,7 +103,7 @@ export default function SecondaryCTAs({
         icon={<FontAwesome name="balance-scale" size={24} color="black" />}
         onPress={onPressEinstellungen}
       />
-      <SecondaryButton
+      {/* <SecondaryButton
         title="Übungsprüfung"
         icon={
           <Ionicons
@@ -113,7 +113,7 @@ export default function SecondaryCTAs({
           />
         }
         onPress={onPressUbungsprufung}
-      />
+      /> */}
     </View>
   );
 }

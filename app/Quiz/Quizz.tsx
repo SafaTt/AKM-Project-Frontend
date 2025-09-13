@@ -12,6 +12,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -48,6 +49,7 @@ const Quizz: React.FC = () => {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [isFinished, setIsFinished] = useState(false);
+  const [toLeaveQuiz, setToLeaveQuiz] = useState(false);
 
   const animatedProgress = useRef(new Animated.Value(0)).current;
 
@@ -194,10 +196,13 @@ const Quizz: React.FC = () => {
       setCurrentIndex(currentIndex + 1);
     } else {
       setIsFinished(true);
-      setTimeout(() => router.back(), 2000);
+      // setTimeout(() => router.back(), 2000);
     }
   };
 
+  const handleContinueQuiz = async () => {
+    setToLeaveQuiz(false);
+  };
   if (loading) {
     return (
       <View
@@ -227,7 +232,7 @@ const Quizz: React.FC = () => {
       <View style={[styles.container, { alignItems: "flex-start" }]}>
         <StatusBar barStyle="light-content" backgroundColor="black" />
         <View style={general_styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/Lernen")}>
             <Ionicons name="arrow-back" size={28} color="black" />
           </TouchableOpacity>
 
@@ -263,7 +268,7 @@ const Quizz: React.FC = () => {
 
       {/* 🔹 Header avec bouton retour + barre de progression */}
       <View style={general_styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/Lernen")}>
+        <TouchableOpacity onPress={() => setToLeaveQuiz(true)}>
           <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
 
@@ -292,9 +297,9 @@ const Quizz: React.FC = () => {
         const isSelected = selectedOption === opt;
         let borderColor = "#ccc";
 
-        if (isSelected && isAnswerCorrect !== null) {
-          borderColor = isAnswerCorrect ? Colors.secondary : Colors.falsch;
-        }
+        // if (isSelected && isAnswerCorrect !== null) {
+        //   borderColor = isAnswerCorrect ? Colors.secondary : Colors.falsch;
+        // }
 
         return (
           <TouchableOpacity
@@ -344,6 +349,61 @@ const Quizz: React.FC = () => {
         correctAnswer={correctAnswer}
         onClose={() => setShowFalsch(false)}
       />
+
+      {/* Modal quitter examen */}
+      <Modal
+        visible={toLeaveQuiz}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setToLeaveQuiz(false)}
+      >
+        <View style={general_styles.modalOverlay}>
+          <View style={general_styles.modalContent}>
+            <Text style={general_styles.modalTitle}>
+              ÜBUNGSPRÜFUNG ABBRECHEN
+            </Text>
+            <Text style={general_styles.modalMessage}>
+              Alle unbeantworteten Fragen werden als falsch markiert.
+            </Text>
+
+            <View style={general_styles.modalButtons}>
+              {/* Bouton pour ANNULER et continuer la quiz */}
+              <TouchableOpacity
+                style={[
+                  general_styles.modalBtn,
+                  { backgroundColor: Colors.secondary },
+                ]}
+                onPress={handleContinueQuiz}
+              >
+                <Text style={general_styles.modalBtnText}>
+                  Übungsprüfung Fortsetzen
+                </Text>
+              </TouchableOpacity>
+
+              {/* Bouton pour CONFIRMER la sortie */}
+              <TouchableOpacity
+                style={[
+                  general_styles.modalBtn,
+                  { borderColor: Colors.secondary, borderWidth: 1 },
+                ]}
+                onPress={() => {
+                  setToLeaveQuiz(false);
+                  router.push("/(tabs)/Lernen"); // <-- Ici tu mets la fonction qui termine vraiment l'examen
+                }}
+              >
+                <Text
+                  style={[
+                    general_styles.modalBtnText,
+                    { color: Colors.secondary },
+                  ]}
+                >
+                  Übungsprüfung Beenden
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
