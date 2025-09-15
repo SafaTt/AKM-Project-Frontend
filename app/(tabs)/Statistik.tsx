@@ -1,10 +1,13 @@
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
+import { AntDesign } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
+  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -14,6 +17,7 @@ import {
 } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
+const { width } = Dimensions.get("window");
 // 🔹 Images
 const quizImg = require("@/assets/images/generals/quiz.png");
 const examImg = require("@/assets/images/generals/exam.png");
@@ -24,6 +28,12 @@ export default function Statistik() {
   const [examStats, setExamStats] = useState<any[]>([]);
   const [totalCorrectAnswers, setTotalCorrectAnswers] = useState(0);
   const [totalWrongAnswers, setTotalWrongAnswers] = useState(0);
+
+  const currentData = selectedTab === "quizz" ? quizStats : examStats;
+
+  const totalExams = examStats.length;
+  const passedExams = examStats.filter((e) => e.passed).length;
+  const failedExams = totalExams - passedExams;
 
   useFocusEffect(
     useCallback(() => {
@@ -87,18 +97,6 @@ export default function Statistik() {
     }, [])
   );
 
-  const currentData = selectedTab === "quizz" ? quizStats : examStats;
-
-  const totalExams = examStats.length;
-  const passedExams = examStats.filter((e) => e.passed).length;
-  const failedExams = totalExams - passedExams;
-  const averageScore =
-    totalExams > 0
-      ? Math.round(
-          examStats.reduce((acc, e) => acc + e.percent, 0) / totalExams
-        )
-      : 0;
-
   // Vérifier s'il y a des données
   const hasData =
     (selectedTab === "quizz" && quizStats.length > 0) ||
@@ -107,11 +105,31 @@ export default function Statistik() {
   return (
     <View style={[general_styles.whiteContainer, { padding: 16 }]}>
       <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
-
-      {/* Onglets */}
+      {/* Header */}
       <View
-        style={{ flexDirection: "row", marginBottom: 20, marginTop: "10%" }}
+        style={[
+          general_styles.header,
+          { marginTop: "10%", marginLeft: width * 0.03, marginBottom: "0%" },
+        ]}
       >
+        <TouchableOpacity
+          style={{
+            backgroundColor: Colors.vertClair,
+            padding: 10,
+            borderRadius: 25,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+          onPress={() => router.push("/(tabs)/Home")}
+        >
+          <AntDesign name="home" size={24} color="black" />
+          <Text style={{ marginLeft: width * 0.02, fontWeight: "500" }}>
+            Home
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {/* Onglets */}
+      <View style={{ flexDirection: "row", marginBottom: 20, marginTop: "5%" }}>
         {[
           { key: "quizz", label: "Quiz", img: quizImg },
           { key: "exam", label: "Prüfung", img: examImg },
@@ -122,7 +140,7 @@ export default function Statistik() {
               key={tab.key}
               style={{
                 flex: 1,
-                padding: 12,
+                padding: 10,
                 backgroundColor: isActive
                   ? Colors.secondary
                   : Colors.secondaryClair,
@@ -183,7 +201,7 @@ export default function Statistik() {
             {selectedTab === "exam" && examStats.length > 0 && (
               <View
                 style={{
-                  marginTop: 20,
+                  marginTop: width * 0.02,
                   flexDirection: "row",
                   flexWrap: "wrap",
                   justifyContent: "space-between",
@@ -244,7 +262,7 @@ export default function Statistik() {
             {selectedTab === "quizz" && quizStats.length > 0 && (
               <View
                 style={{
-                  marginTop: 20,
+                  marginTop: width * 0.02,
                   flexDirection: "row",
                   flexWrap: "wrap",
                   justifyContent: "space-between",
@@ -312,7 +330,7 @@ export default function Statistik() {
             {/* Footer */}
             <View
               style={{
-                marginTop: 20,
+                marginTop: width * 0.01,
                 padding: 16,
                 backgroundColor: Colors.secondaryClair,
                 borderRadius: 12,

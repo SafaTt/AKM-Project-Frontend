@@ -268,7 +268,7 @@ const Quizz: React.FC = () => {
 
       {/* 🔹 Header avec bouton retour + barre de progression */}
       <View style={general_styles.header}>
-        <TouchableOpacity onPress={() => setToLeaveQuiz(true)}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/Lernen")}>
           <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
 
@@ -350,7 +350,7 @@ const Quizz: React.FC = () => {
         onClose={() => setShowFalsch(false)}
       />
 
-      {/* Modal quitter examen */}
+      {/* Non présent dans l'app actuellement: Modal quitter examen */}
       <Modal
         visible={toLeaveQuiz}
         transparent

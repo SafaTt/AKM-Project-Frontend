@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { general_styles } from "@/constants/General_styles";
+import { AntDesign } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -94,11 +95,18 @@ export default function Lernen() {
                     const answers = stored ? JSON.parse(stored) : [];
 
                     const progress = answers.length / validRows.length;
+                    let boxes = [validRows.length, 0, 0, 0, 0]; // toutes les questions dans la première carte
 
-                    let boxes = [0, 0, 0, 0, 0];
                     answers.forEach((a: any) => {
                       const stack = a.stack || 1;
-                      boxes[stack - 1] += 1;
+
+                      // Retirer la question de la première carte et la mettre dans la bonne pile
+                      if (stack === 1) {
+                        // déjà comptée dans la première carte, rien à changer
+                      } else {
+                        boxes[0] -= 1; // on enlève de la carte 1
+                        boxes[stack - 1] += 1; // on ajoute dans la carte correspondante
+                      }
                     });
 
                     resolve({
@@ -145,8 +153,30 @@ export default function Lernen() {
   return (
     <View style={general_styles.container}>
       <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
-
-      <View style={[general_styles.whiteView]}>
+      {/* Header */}
+      <View
+        style={[
+          general_styles.header,
+          { marginTop: "12%", marginLeft: width * 0.03, marginBottom: "0%" },
+        ]}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: Colors.vertClair,
+            padding: 10,
+            borderRadius: 25,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+          onPress={() => router.push("/(tabs)/Home")}
+        >
+          <AntDesign name="home" size={24} color="black" />
+          <Text style={{ marginLeft: width * 0.02, fontWeight: "500" }}>
+            Home
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={[general_styles.whiteView, { marginTop: "0%" }]}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {loading ? (
             <View
@@ -184,11 +214,7 @@ export default function Lernen() {
                 "#049c4477",
               ];
 
-              const filteredBoxes = topic.selectedStack
-                ? topic.boxes.map((count, i) =>
-                    i === topic.selectedStack! - 1 ? count : 0
-                  )
-                : topic.boxes;
+              const filteredBoxes = topic.boxes;
 
               return (
                 <View key={topicIndex} style={general_styles.topicCard}>

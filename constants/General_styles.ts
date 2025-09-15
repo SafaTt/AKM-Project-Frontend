@@ -186,7 +186,7 @@ export const general_styles = StyleSheet.create({
     alignItems: "center",
   },
   barView: {
-    margin: 6,
+    margin: 4,
     padding: 6,
     // paddingTop: 24, // 🔹 espace pour les labels
     backgroundColor: "#fff",
