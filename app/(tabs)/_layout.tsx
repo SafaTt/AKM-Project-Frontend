@@ -2,7 +2,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Dimensions, View } from "react-native";
-import { useSharedValue } from "react-native-reanimated";
 
 import HomeScreen from "./Home";
 import LernenScreen from "./Lernen";
@@ -17,8 +16,6 @@ const ICON_CONTAINER_SIZE = width * 0.12; // ~12% de la largeur écran
 const ICON_SIZE = ICON_CONTAINER_SIZE * 0.5; // icône prend la moitié
 
 export default function TabLayout() {
-  const widthAnimation = useSharedValue(100);
-
   return (
     <Tab.Navigator
       screenOptions={{
