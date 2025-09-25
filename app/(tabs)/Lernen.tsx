@@ -176,8 +176,11 @@ export default function Lernen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <View style={[general_styles.whiteView, { marginTop: "0%" }]}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={[general_styles.whiteView, { flex: 1, marginTop: "0%" }]}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: height * 0.05 }}
+        >
           {loading ? (
             <View
               style={{
