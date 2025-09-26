@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Dimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HomeScreen from "./Home";
 import LernenScreen from "./Lernen";
@@ -16,11 +17,17 @@ const ICON_CONTAINER_SIZE = width * 0.12; // ~12% de la largeur écran
 const ICON_SIZE = ICON_CONTAINER_SIZE * 0.5; // icône prend la moitié
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets(); // ✅ récupère les safe areas
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: "white" },
+        tabBarStyle: {
+          backgroundColor: "white",
+          paddingBottom: insets.bottom + 5, // espace pour les boutons système
+          height: ICON_CONTAINER_SIZE + insets.bottom + 10, // ajuste la hauteur totale
+        },
         tabBarActiveTintColor: "white", // label actif en blanc
         tabBarInactiveTintColor: "black", // label inactif en noir
       }}
