@@ -109,7 +109,7 @@ export default function Statistik() {
       <View
         style={[
           general_styles.header,
-          { marginTop: "10%", marginLeft: width * 0.03, marginBottom: "0%" },
+          { marginTop: "1%", marginLeft: width * 0.03, marginBottom: "0%" },
         ]}
       >
         <TouchableOpacity

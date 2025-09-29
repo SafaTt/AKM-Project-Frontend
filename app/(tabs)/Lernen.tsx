@@ -157,7 +157,7 @@ export default function Lernen() {
       <View
         style={[
           general_styles.header,
-          { marginTop: "12%", marginLeft: width * 0.03, marginBottom: "0%" },
+          { marginTop: "2%", marginLeft: width * 0.03, marginBottom: "0%" },
         ]}
       >
         <TouchableOpacity
