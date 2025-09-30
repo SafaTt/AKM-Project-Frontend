@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { ProgressBar } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 interface QuestionRow {
@@ -52,6 +53,8 @@ const csvFiles = [
 ];
 
 export default function Lernen() {
+  const insets = useSafeAreaInsets();
+
   const [loading, setLoading] = useState(true);
   const [topics, setTopics] = useState<
     {
@@ -157,21 +160,30 @@ export default function Lernen() {
       <View
         style={[
           general_styles.header,
-          { marginTop: "2%", marginLeft: width * 0.03, marginBottom: "0%" },
+          {
+            marginTop: insets.top, // <-- +2% par rapport au statusbar
+            marginLeft: width * 0.03,
+          },
         ]}
       >
         <TouchableOpacity
           style={{
             backgroundColor: Colors.vertClair,
-            padding: 10,
+            padding: 8,
             borderRadius: 25,
             flexDirection: "row",
             alignItems: "center",
           }}
           onPress={() => router.push("/(tabs)/Home")}
         >
-          <AntDesign name="home" size={24} color="black" />
-          <Text style={{ marginLeft: width * 0.02, fontWeight: "500" }}>
+          <AntDesign name="home" size={20} color="black" />
+          <Text
+            style={{
+              marginLeft: width * 0.02,
+              fontWeight: "500",
+              fontSize: 14,
+            }}
+          >
             Home
           </Text>
         </TouchableOpacity>

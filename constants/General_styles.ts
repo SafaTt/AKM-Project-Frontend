@@ -6,8 +6,6 @@ const { height, width } = Dimensions.get("window");
 export const general_styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: "center",
-    // alignItems: "center",
     backgroundColor: "white",
   },
   containerUI: { flex: 1, backgroundColor: Colors.primary },

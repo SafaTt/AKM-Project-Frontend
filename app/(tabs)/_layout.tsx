@@ -25,7 +25,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: "white",
-          paddingBottom: insets.bottom + 5, // espace pour les boutons système
+          paddingBottom: insets.bottom > 0 ? insets.bottom + 5 : 10, // espace pour les boutons système
           height: ICON_CONTAINER_SIZE + insets.bottom + 10, // ajuste la hauteur totale
         },
         tabBarActiveTintColor: "white", // label actif en blanc

@@ -16,9 +16,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+
   const [overallProgress, setOverallProgress] = useState(0);
   useFocusEffect(
     useCallback(() => {
@@ -68,7 +71,14 @@ export default function HomeScreen() {
     <View style={general_styles.container}>
       <StatusBar backgroundColor={"white"} barStyle={"dark-content"} />
 
-      <View style={general_styles.rowView}>
+      <View
+        style={[
+          general_styles.rowView,
+          {
+            marginTop: insets.top, // <-- décalage après le statusbar
+          },
+        ]}
+      >
         <Image
           source={require("../../assets/images/generals/logo.png")}
           style={general_styles.brandLogo}

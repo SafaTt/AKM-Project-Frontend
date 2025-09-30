@@ -19,11 +19,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StoredExam } from "../Quiz/ExamQuizz";
 
 const { height, width } = Dimensions.get("window");
 
 export default function ÜbungsprüfungIntro() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [exams, setExams] = useState<StoredExam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,16 +66,6 @@ export default function ÜbungsprüfungIntro() {
 
   const startExam = () => {
     router.push("../Quiz/ExamQuizz");
-  };
-
-  const clearAllExams = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log("Tout le AsyncStorage a été vidé !");
-      setExams([]);
-    } catch (err) {
-      console.error("Erreur lors de la suppression des examens :", err);
-    }
   };
 
   const formatTime = (exam: StoredExam) => {
@@ -148,7 +140,7 @@ export default function ÜbungsprüfungIntro() {
                 alignSelf: "flex-end",
                 padding: 10,
                 marginRight: width * 0.01,
-                marginTop: "5%",
+                marginTop: insets.top,
               }}
               onPress={startExam}
             >

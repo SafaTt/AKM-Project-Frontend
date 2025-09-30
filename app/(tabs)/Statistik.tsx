@@ -16,13 +16,16 @@ import {
   View,
 } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 // 🔹 Images
 const quizImg = require("@/assets/images/generals/quiz.png");
 const examImg = require("@/assets/images/generals/exam.png");
 
 export default function Statistik() {
+  const insets = useSafeAreaInsets();
+
   const [selectedTab, setSelectedTab] = useState<"quizz" | "exam">("quizz");
   const [quizStats, setQuizStats] = useState<any[]>([]);
   const [examStats, setExamStats] = useState<any[]>([]);
@@ -109,25 +112,35 @@ export default function Statistik() {
       <View
         style={[
           general_styles.header,
-          { marginTop: "1%", marginLeft: width * 0.03, marginBottom: "0%" },
+          {
+            marginTop: insets.top, // <-- +2% par rapport au statusbar
+            marginLeft: width * 0.03,
+          },
         ]}
       >
         <TouchableOpacity
           style={{
             backgroundColor: Colors.vertClair,
-            padding: 10,
+            padding: 8,
             borderRadius: 25,
             flexDirection: "row",
             alignItems: "center",
           }}
           onPress={() => router.push("/(tabs)/Home")}
         >
-          <AntDesign name="home" size={24} color="black" />
-          <Text style={{ marginLeft: width * 0.02, fontWeight: "500" }}>
+          <AntDesign name="home" size={20} color="black" />
+          <Text
+            style={{
+              marginLeft: width * 0.02,
+              fontWeight: "500",
+              fontSize: 14,
+            }}
+          >
             Home
           </Text>
         </TouchableOpacity>
       </View>
+
       {/* Onglets */}
       <View style={{ flexDirection: "row", marginBottom: 20, marginTop: "5%" }}>
         {[
